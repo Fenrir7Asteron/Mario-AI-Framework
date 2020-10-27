@@ -15,12 +15,13 @@ public class Agent implements MarioAgent {
     private MCTree tree = null;
     private Random random = null;
     private HashSet<Enhancement> enhancements;
+    private boolean[] action;
 
     @Override
     public void initialize(MarioForwardModel model, MarioTimer timer) {
         enhancements = new HashSet<Enhancement>() {};
         enhancements.add(Enhancement.MIXMAX);
-        enhancements.add(Enhancement.PARTIAL_EXPANSION);
+//        enhancements.add(Enhancement.PARTIAL_EXPANSION);
         random = new Random();
         tree = new MCTree(model, 1, enhancements, random);
     }
@@ -29,7 +30,7 @@ public class Agent implements MarioAgent {
     public boolean[] getActions(MarioForwardModel model, MarioTimer timer) {
 //        tree = new MCTree(model, 1, enhancements, random);
         tree.updateModel(model);
-        boolean[] action = tree.search(timer);
+        action = tree.search(timer);
 //        for (int i = 0; i < action.length; ++i) {
 //            System.out.print(action[i] + " ");
 //        }
