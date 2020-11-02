@@ -8,11 +8,11 @@ import java.util.Random;
 import java.util.Set;
 
 public class MCTree {
-    private static final int MAX_DEPTH = 15;
+    private static final int MAX_DEPTH = 6;
     private static final double EXPLORATION_FACTOR = 0.25f;
-    private static final double MIXMAX_MAX_FACTOR = 1.0f;
+    private static final double MIXMAX_MAX_FACTOR = 0.125f;
     private static final double REWARD_DISCOUNT_FACTOR = 1.0f;
-    private TreeNode root = null;
+    public TreeNode root = null;
     private Random random = null;
     private int repetitions = 1;
     private Set<Enhancement> enhancements;
@@ -38,16 +38,16 @@ public class MCTree {
     }
 
     boolean[] search(MarioTimer timer) {
-//        int count = 0;
+        int count = 0;
         while (timer.getRemainingTime() > 0) {
-//            ++count;
-            TreeNode nodeSelected = selectNode();
-            nodeSelected = expandIfNeeded(nodeSelected);
+            ++count;
+            TreeNode nodeSelected = selectAndExpand();
             double reward = simulate(nodeSelected);
             backpropagate(nodeSelected, reward);
         }
 
-        TreeNode bestNode = bestChild(root);
+        System.out.println("Depth: " + depth);
+        TreeNode bestNode = bestChild(root, false);
         root = bestNode;
         root.parent = null;
         return bestNode.action;
@@ -63,43 +63,46 @@ public class MCTree {
             return node;
         }
         if (node.visitCount > 0 && node.children.size() < Utils.availableActions.length) {
-            if (enhancements.contains(Enhancement.PARTIAL_EXPANSION)) {
+            if (enhancements.contains(Enhancement.PARTIAL_EXPANSION) && node.children.size() == 0) {
                 node = node.expandOne();
-            } else {
+            } else if (!enhancements.contains(Enhancement.PARTIAL_EXPANSION)) {
                 node = node.expandAll();
             }
-//            depth = Math.max(depth, node.depth) - root.depth;
+            depth = Math.max(depth, node.depth) - root.depth;
         }
         return node;
     }
 
-    private TreeNode selectNode() {
+    private TreeNode selectAndExpand() {
         TreeNode current = root;
-        while (!current.isLeaf() && current.snapshotVersion == root.snapshotVersion) {
-            TreeNode next = bestChild(current);
-            double maxConfidence = calcConfidence(next);
+        while (!current.isLeaf()) {
+            if (current.snapshotVersion != root.snapshotVersion) {
+                current.updateSnapshot();
+            }
+            TreeNode next = bestChild(current, true);
             int n = current.visitCount;
             int expands = current.children.size();
-            if (enhancements.contains(Enhancement.PARTIAL_EXPANSION) && current.children.size() < Utils.availableActions.length) {
+//            System.out.println("Expands: " + expands);
+            if (n > 0 && enhancements.contains(Enhancement.PARTIAL_EXPANSION) && current.children.size() < Utils.availableActions.length) {
                 double unexploredConf = 0.5 + EXPLORATION_FACTOR * Math.sqrt(2 * Math.log(n) / (1 + expands));
-                if (expands == 0 || unexploredConf > maxConfidence) {
-                    return current;
+                if (expands == 0 || unexploredConf > current.maxConfidence) {
+                    return current.expandOne();
                 }
             }
 
             current = next;
         }
 
-        return current;
+        return expandIfNeeded(current);
     }
 
-    private TreeNode bestChild(TreeNode current) {
-        double maxConfidence = Double.NEGATIVE_INFINITY;
+    private TreeNode bestChild(TreeNode current, boolean explore) {
+        current.maxConfidence = Double.NEGATIVE_INFINITY;
         TreeNode best = null;
         for (TreeNode child : current.children) {
-            double conf = calcConfidence(child);
-            if (conf > maxConfidence) {
-                maxConfidence = conf;
+            double conf = calcConfidence(child, explore);
+            if (conf > current.maxConfidence) {
+                current.maxConfidence = conf;
                 best = child;
             }
         }
@@ -107,7 +110,7 @@ public class MCTree {
         return best;
     }
 
-    private double calcConfidence(TreeNode node) {
+    private double calcConfidence(TreeNode node, boolean explore) {
         if (node == null) {
             return 0;
         }
@@ -122,10 +125,11 @@ public class MCTree {
         } else {
             exploitation = node.averageReward;
         }
-        double exploration = EXPLORATION_FACTOR * Math.sqrt(2 * Math.log(n) / nj);
-        double conf = exploitation + exploration;
-//        System.out.println(conf + " " + exploitation + " " + n + " " + nj);
-        return conf;
+        double exploration = 0.0f;
+        if (explore) {
+            exploration = EXPLORATION_FACTOR * Math.sqrt(2 * Math.log(n) / nj);
+        }
+        return exploitation + exploration;
     }
 
     private double simulate(TreeNode selectedNode) {
@@ -139,18 +143,16 @@ public class MCTree {
         }
 
         // Return reward after random simulation
-        double reward;
         if (simulationNode.isGameOver()) {
             if (simulationNode.sceneSnapshot.getGameStatus() == GameStatus.WIN) {
-                reward = 1.0f;
+                return 1.0f;
             } else {
-                reward = 0.0f;
+                return 0.0f;
             }
         } else {
-            reward = calcReward(simulationNode.sceneSnapshot.getMarioFloatPos()[0],
-                    selectedNode.sceneSnapshot.getMarioFloatPos()[0]);
+            return calcReward(simulationNode.sceneSnapshot.getMarioFloatPos()[0],
+                    selectedNode.parent.sceneSnapshot.getMarioFloatPos()[0]);
         }
-        return reward;
     }
 
     private double calcReward(double xend, double xstart) {

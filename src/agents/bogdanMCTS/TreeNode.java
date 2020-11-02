@@ -13,6 +13,7 @@ public class TreeNode {
     public int snapshotVersion;
     public Random random;
     public double maxReward = 0;
+    public double maxConfidence = 0;
     public double totalReward = 0;
     public double averageReward = 0;
     public int visitCount = 0;
@@ -103,5 +104,10 @@ public class TreeNode {
         totalReward += reward;
         maxReward = Math.max(maxReward, reward);
         averageReward = totalReward / visitCount;
+    }
+
+    public void updateSnapshot() {
+        this.sceneSnapshot = parent.sceneSnapshot.clone();
+        this.sceneSnapshot.advance(this.action);
     }
 }
