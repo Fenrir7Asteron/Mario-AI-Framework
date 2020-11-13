@@ -6,17 +6,20 @@ import engine.helper.GameStatus;
 
 import java.util.Random;
 import java.util.Set;
+import java.util.Stack;
 
 public class MCTree {
     private static final int MAX_DEPTH = 6;
-    private static final double EXPLORATION_FACTOR = 0.25f;
+    private static final double EXPLORATION_FACTOR = 0.188f;
     private static final double MIXMAX_MAX_FACTOR = 0.125f;
     private static final double REWARD_DISCOUNT_FACTOR = 1.0f;
+
     public TreeNode root = null;
     private Random random = null;
     private int repetitions = 1;
     private Set<Enhancement> enhancements;
     public int depth;
+    private Stack<TreeNode> nodePool;
 
     public enum Enhancement {
         MIXMAX,
@@ -27,14 +30,21 @@ public class MCTree {
         this.repetitions = repetitions;
         this.enhancements = enhancements;
         this.random = random;
-        root = new TreeNode(-1, null, repetitions, random, null);
-        root.initializeRoot(model);
+        nodePool = new Stack<>();
+        initializeRoot(model);
+        depth = 0;
+    }
+
+    public void initializeRoot(MarioForwardModel model) {
+        root = allocateNode(-1, repetitions, random, null);
+        root.sceneSnapshot = model.clone();
+        root.snapshotVersion = 0;
+        root.depth = 0;
         if (!enhancements.contains(Enhancement.PARTIAL_EXPANSION)) {
             root.expandAll();
         } else {
             root.expandOne();
         }
-        depth = 0;
     }
 
     boolean[] search(MarioTimer timer) {
@@ -45,23 +55,24 @@ public class MCTree {
             double reward = simulate(nodeSelected);
             backpropagate(nodeSelected, reward);
         }
-
-        System.out.println("Depth: " + depth);
+        System.out.println(count);
         TreeNode bestNode = bestChild(root, false);
-        root = bestNode;
-        root.parent = null;
-        return bestNode.action;
+        int bestActionId = bestNode.actionId;
+        clearTree();
+        return Utils.availableActions[bestActionId];
+    }
+
+    private void clearTree() {
+        root.free();
     }
 
     void updateModel(MarioForwardModel model) {
-        root.sceneSnapshot = model;
-        root.snapshotVersion++;
+//        root.sceneSnapshot = model;
+//        root.snapshotVersion++;
+        initializeRoot(model);
     }
 
     private TreeNode expandIfNeeded(TreeNode node) {
-        if (node.parent != null && node.snapshotVersion != node.parent.snapshotVersion) {
-            return node;
-        }
         if (node.visitCount > 0 && node.children.size() < Utils.availableActions.length) {
             if (enhancements.contains(Enhancement.PARTIAL_EXPANSION) && node.children.size() == 0) {
                 node = node.expandOne();
@@ -82,7 +93,6 @@ public class MCTree {
             TreeNode next = bestChild(current, true);
             int n = current.visitCount;
             int expands = current.children.size();
-//            System.out.println("Expands: " + expands);
             if (n > 0 && enhancements.contains(Enhancement.PARTIAL_EXPANSION) && current.children.size() < Utils.availableActions.length) {
                 double unexploredConf = 0.5 + EXPLORATION_FACTOR * Math.sqrt(2 * Math.log(n) / (1 + expands));
                 if (expands == 0 || unexploredConf > current.maxConfidence) {
@@ -134,39 +144,71 @@ public class MCTree {
 
     private double simulate(TreeNode selectedNode) {
         selectedNode.simulatePos();
-        TreeNode simulationNode = new TreeNode(-1, null, 1, random, null);
+        TreeNode simulationNode = allocateNode(-1, repetitions, random, null);
         simulationNode.sceneSnapshot = selectedNode.sceneSnapshot.clone();
         int step = 0;
+        boolean damaged = false;
         while (step < MAX_DEPTH && !simulationNode.isGameOver()) {
+            int prevMode = simulationNode.sceneSnapshot.getMarioMode();
+            int prevLives = simulationNode.sceneSnapshot.getNumLives();
             ++step;
             simulationNode.randomMove();
+            int currMode = simulationNode.sceneSnapshot.getMarioMode();
+            int currLives = simulationNode.sceneSnapshot.getNumLives();
+            if (currMode < prevMode || currLives < prevLives || simulationNode.sceneSnapshot.getGameStatus() == GameStatus.LOSE) {
+                damaged = true;
+            }
+//            System.out.println(damaged);
+            if (calcReward(simulationNode.sceneSnapshot.getMarioFloatPos()[0],
+                selectedNode.parent.sceneSnapshot.getMarioFloatPos()[0],
+                damaged) < 1e-9) {
+                return 0.0;
+            }
         }
 
         // Return reward after random simulation
-        if (simulationNode.isGameOver()) {
-            if (simulationNode.sceneSnapshot.getGameStatus() == GameStatus.WIN) {
-                return 1.0f;
-            } else {
-                return 0.0f;
-            }
-        } else {
-            return calcReward(simulationNode.sceneSnapshot.getMarioFloatPos()[0],
-                    selectedNode.parent.sceneSnapshot.getMarioFloatPos()[0]);
-        }
+        return calcReward(simulationNode.sceneSnapshot.getMarioFloatPos()[0],
+                selectedNode.parent.sceneSnapshot.getMarioFloatPos()[0],
+                damaged);
     }
 
-    private double calcReward(double xend, double xstart) {
-        return 0.5 + 0.5 * (xend - xstart) / (11 * (1 + MAX_DEPTH));
+    private double calcReward(double xend, double xstart, boolean damaged) {
+        if (damaged) {
+            return 0.0;
+        }
+        return 0.5 + 0.5 * (xend - xstart) / (11.0 * (1 + MAX_DEPTH));
     }
 
     private void backpropagate(TreeNode currentNode, double reward) {
-        while (!currentNode.isRoot()) {
+        while (currentNode != null) {
             currentNode.updateReward(reward);
-//            double parentReward = calcReward(currentNode.sceneSnapshot.getMarioFloatPos()[0],
-//                    currentNode.parent.sceneSnapshot.getMarioFloatPos()[0]);
-//            reward = reward * REWARD_DISCOUNT_FACTOR;
             currentNode = currentNode.parent;
         }
-        root.updateReward(reward);
+    }
+
+    public TreeNode allocateNode(int actionId, int repetitions, Random random, TreeNode parent) {
+        if (!nodePool.isEmpty()) {
+            TreeNode node = nodePool.pop();
+            node.actionId = actionId;
+            node.repetitions = repetitions;
+            node.random = random;
+            node.parent = parent;
+            return node;
+        }
+        return new TreeNode(actionId, repetitions, random, parent, this);
+    }
+
+    public void deallocateNode(TreeNode node) {
+        node.depth = 0;
+        node.sceneSnapshot = null;
+        node.snapshotVersion = 0;
+        node.visitCount = 0;
+        node.maxConfidence = 0;
+        node.maxReward = 0;
+        node.totalReward = 0;
+        node.actionId = -1;
+        node.children.clear();
+        node.parent = null;
+        nodePool.push(node);
     }
 }

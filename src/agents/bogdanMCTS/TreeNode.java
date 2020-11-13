@@ -2,12 +2,12 @@ package agents.bogdanMCTS;
 
 import engine.core.MarioForwardModel;
 import engine.helper.GameStatus;
-import engine.helper.MarioActions;
 
 import java.util.*;
 
 public class TreeNode {
     public TreeNode parent = null;
+    public MCTree tree = null;
     public ArrayList<TreeNode> children;
     public MarioForwardModel sceneSnapshot = null;
     public int snapshotVersion;
@@ -17,17 +17,16 @@ public class TreeNode {
     public double totalReward = 0;
     public double averageReward = 0;
     public int visitCount = 0;
-    public int id;
     public int depth;
-    boolean[] action;
+    int actionId;
     int repetitions = 1;
 
-    public TreeNode(int id, boolean[] action, int repetitions, Random random, TreeNode parent) {
-        this.id = id;
-        this.action = action;
+    public TreeNode(int actionId, int repetitions, Random random, TreeNode parent, MCTree tree) {
+        this.actionId = actionId;
         this.repetitions = repetitions;
         this.random = random;
         this.parent = parent;
+        this.tree = tree;
         if (parent != null) {
             this.depth = parent.depth + 1;
         } else {
@@ -37,18 +36,10 @@ public class TreeNode {
         this.children = new ArrayList<>();
     }
 
-    public void initializeRoot(MarioForwardModel model) {
-        if (this.parent == null) {
-            this.sceneSnapshot = model.clone();
-            this.snapshotVersion = 0;
-            this.depth = 0;
-        }
-    }
-
     public TreeNode expandAll() {
         // Expand node to all possible actions
         for (int i = 0; i < Utils.availableActions.length; ++i) {
-            children.add(new TreeNode(i, Utils.availableActions[i], repetitions, random, this));
+            children.add(tree.allocateNode(i, repetitions, random, this));
         }
 
         // Return random node among expands
@@ -58,7 +49,7 @@ public class TreeNode {
     public TreeNode expandOne() {
         Set<Integer> ids = new HashSet<>();
         for (int i = 0; i < children.size(); ++i) {
-            ids.add(children.get(i).id);
+            ids.add(children.get(i).actionId);
         }
         List<Integer> freeIds = new ArrayList<>();
         for (int i = 0; i < Utils.availableActions.length; ++i) {
@@ -67,7 +58,7 @@ public class TreeNode {
             }
         }
         int newId = freeIds.get(random.nextInt(freeIds.size()));
-        TreeNode child = new TreeNode(newId, Utils.availableActions[newId], repetitions, random, this);
+        TreeNode child = tree.allocateNode(newId, repetitions, random, this);
         children.add(child);
         return child;
     }
@@ -78,12 +69,15 @@ public class TreeNode {
             this.snapshotVersion = parent.snapshotVersion;
         }
         for (int i = 0; i < repetitions; i++) {
-            this.sceneSnapshot.advance(action);
+            this.sceneSnapshot.advance(Utils.availableActions[actionId]);
         }
     }
 
     public void randomMove() {
-        this.sceneSnapshot.advance(Utils.availableActions[random.nextInt(Utils.availableActions.length)]);
+        for (int i = 0; i < repetitions; i++) {
+            int rand = random.nextInt(Utils.availableActions.length);
+            this.sceneSnapshot.advance(Utils.availableActions[rand]);
+        }
     }
 
     public boolean isRoot() {
@@ -108,6 +102,18 @@ public class TreeNode {
 
     public void updateSnapshot() {
         this.sceneSnapshot = parent.sceneSnapshot.clone();
-        this.sceneSnapshot.advance(this.action);
+        if (this.visitCount > 0) {
+            System.out.println("WARNING: VISIT COUNT > 0");
+        }
+        for (int i = 0; i < repetitions; i++) {
+            this.sceneSnapshot.advance(Utils.availableActions[actionId]);
+        }
+    }
+
+    public void free() {
+        for (TreeNode child : children) {
+            child.free();
+        }
+        tree.deallocateNode(this);
     }
 }
