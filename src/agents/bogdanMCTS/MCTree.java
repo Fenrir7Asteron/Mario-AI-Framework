@@ -9,10 +9,9 @@ import java.util.Set;
 import java.util.Stack;
 
 public class MCTree {
-    private static final int MAX_DEPTH = 6;
-    private static final double EXPLORATION_FACTOR = 0.188f;
-    private static final double MIXMAX_MAX_FACTOR = 0.125f;
-    private static final double REWARD_DISCOUNT_FACTOR = 1.0f;
+    protected static int MAX_DEPTH; // = 6;
+    protected static double EXPLORATION_FACTOR; // = 0.188f;
+    protected static double MIXMAX_MAX_FACTOR ; // = 0.125f;
 
     public TreeNode root = null;
     private Random random = null;
@@ -55,7 +54,6 @@ public class MCTree {
             double reward = simulate(nodeSelected);
             backpropagate(nodeSelected, reward);
         }
-        System.out.println(count);
         TreeNode bestNode = bestChild(root, false);
         int bestActionId = bestNode.actionId;
         clearTree();
@@ -147,36 +145,37 @@ public class MCTree {
         TreeNode simulationNode = allocateNode(-1, repetitions, random, null);
         simulationNode.sceneSnapshot = selectedNode.sceneSnapshot.clone();
         int step = 0;
-        boolean damaged = false;
-        while (step < MAX_DEPTH && !simulationNode.isGameOver()) {
+        int damage = 0;
+        while (step < MAX_DEPTH) {
             int prevMode = simulationNode.sceneSnapshot.getMarioMode();
             int prevLives = simulationNode.sceneSnapshot.getNumLives();
             ++step;
             simulationNode.randomMove();
             int currMode = simulationNode.sceneSnapshot.getMarioMode();
             int currLives = simulationNode.sceneSnapshot.getNumLives();
-            if (currMode < prevMode || currLives < prevLives || simulationNode.sceneSnapshot.getGameStatus() == GameStatus.LOSE) {
-                damaged = true;
-            }
-//            System.out.println(damaged);
-            if (calcReward(simulationNode.sceneSnapshot.getMarioFloatPos()[0],
-                selectedNode.parent.sceneSnapshot.getMarioFloatPos()[0],
-                damaged) < 1e-9) {
+            if (currLives == -1 || simulationNode.sceneSnapshot.getGameStatus() == GameStatus.LOSE) {
                 return 0.0;
+            }
+            else if (simulationNode.sceneSnapshot.getGameStatus() == GameStatus.WIN) {
+                return 1.0;
+            }
+            if (currMode < prevMode || currLives < prevLives) {
+                damage++;
             }
         }
 
         // Return reward after random simulation
         return calcReward(simulationNode.sceneSnapshot.getMarioFloatPos()[0],
                 selectedNode.parent.sceneSnapshot.getMarioFloatPos()[0],
-                damaged);
+                damage);
     }
 
-    private double calcReward(double xend, double xstart, boolean damaged) {
-        if (damaged) {
-            return 0.0;
+    private double calcReward(double xend, double xstart, int damage) {
+        double reward = 0.5 + 0.5 * (xend - xstart) / (11.0 * (1 + MAX_DEPTH)) - 0.5 * damage;
+        if (reward < 0) {
+            System.out.println("Warning: reward is less than zero, reward = " + reward);
         }
-        return 0.5 + 0.5 * (xend - xstart) / (11.0 * (1 + MAX_DEPTH));
+        return reward;
     }
 
     private void backpropagate(TreeNode currentNode, double reward) {

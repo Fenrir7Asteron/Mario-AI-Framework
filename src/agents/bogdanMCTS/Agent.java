@@ -5,17 +5,17 @@ import engine.core.MarioAgent;
 import engine.core.MarioForwardModel;
 import engine.core.MarioTimer;
 
-import java.util.HashSet;
-import java.util.Random;
+import java.util.*;
 
 /**
  * @author BogdanFedotov
  */
-public class Agent implements MarioAgent {
-    private MCTree tree = null;
-    private Random random = null;
-    private HashSet<Enhancement> enhancements;
-    private boolean[] action;
+public class Agent implements MarioAgent, MachineLearningModel {
+    public enum Hyperparameter {
+        MAX_DEPTH,
+        EXPLORATION_FACTOR,
+        MIXMAX_MAX_FACTOR,
+    }
 
     @Override
     public void initialize(MarioForwardModel model, MarioTimer timer) {
@@ -38,4 +38,30 @@ public class Agent implements MarioAgent {
     public String getAgentName() {
         return "MyMCTSAgent";
     }
+
+    @Override
+    public void setHyperParameters(HashMap<Integer, Number> hyperParameters) {
+        for (var hp : Hyperparameter.values()) {
+            if (!hyperParameters.containsKey(hp.ordinal())) {
+                throw new IllegalArgumentException("Wrong hyperparameters. Please, use corresponding public enum.");
+            }
+        }
+        MCTree.EXPLORATION_FACTOR = (double) hyperParameters.get(Hyperparameter.EXPLORATION_FACTOR.ordinal());
+        MCTree.MIXMAX_MAX_FACTOR = (double) hyperParameters.get(Hyperparameter.MIXMAX_MAX_FACTOR.ordinal());
+        MCTree.MAX_DEPTH = (int) hyperParameters.get(Hyperparameter.MAX_DEPTH.ordinal());
+    }
+
+    @Override
+    public HashMap<Integer, List<Number>> getHyperParameterGrid() {
+        HashMap<Integer, List<Number>> grid = new HashMap<>();
+        grid.put(Hyperparameter.EXPLORATION_FACTOR.ordinal(), Arrays.asList(0.0, 0.125, 0.188, 0.25));
+        grid.put(Hyperparameter.MIXMAX_MAX_FACTOR.ordinal(), Arrays.asList(0.0, 0.125, 0.25, 1));
+        grid.put(Hyperparameter.MAX_DEPTH.ordinal(), Arrays.asList(2, 4, 6, 10));
+        return grid;
+    }
+
+    private MCTree tree = null;
+    private Random random = null;
+    private HashSet<Enhancement> enhancements;
+    private boolean[] action;
 }

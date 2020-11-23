@@ -1,10 +1,17 @@
-import engine.core.MarioGame;
-import engine.core.MarioLevelGenerator;
-import engine.core.MarioLevelModel;
-import engine.core.MarioResult;
-import engine.core.MarioTimer;
+import engine.core.*;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class GenerateLevel {
+    private static final int GENERATED_LEVEL_WIDTH = 150;
+    private static final int GENERATED_LEVEL_HEIGHT = 16;
+    private static final int LEVEL_COUNT = 100;
+    private static final String LEVEL_DIR = "./levels/thesisTestLevels/";
+    private static final Boolean VISUALIZATION = true;
+
     public static void printResults(MarioResult result) {
         System.out.println("****************************************************************");
         System.out.println("Game Status: " + result.getGameStatus().toString() +
@@ -21,11 +28,27 @@ public class GenerateLevel {
         System.out.println("****************************************************************");
     }
 
-    public static void main(String[] args) {
-        MarioLevelGenerator generator = new levelGenerators.notch.LevelGenerator();
-        String level = generator.getGeneratedLevel(new MarioLevelModel(150, 16), new MarioTimer(5 * 60 * 60 * 1000));
-        MarioGame game = new MarioGame();
-        // printResults(game.playGame(level, 200, 0));
-        printResults(game.runGame(new agents.robinBaumgarten.Agent(), level, 20, 0, true));
+    private static void generateManyLevels() throws IOException {
+        int generated = 0;
+        while (generated < LEVEL_COUNT) {
+            try {
+                MarioLevelGenerator generator = new levelGenerators.sampler.LevelGenerator();
+                String level = generator.getGeneratedLevel(new MarioLevelModel(GENERATED_LEVEL_WIDTH, GENERATED_LEVEL_HEIGHT), new MarioTimer(5 * 60 * 60 * 1000));
+                Path dir = Paths.get(LEVEL_DIR);
+                if (!Files.exists(dir)) {
+                    Files.createDirectory(dir);
+                }
+                Path file = Paths.get(String.format(LEVEL_DIR + "lvl-%d.txt", generated + 1));
+                Files.write(file, level.getBytes());
+                generated++;
+            } catch (IllegalArgumentException e) {
+                System.out.println("Error during generation. Generating again.");
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static void main(String[] args) throws IOException {
+        generateManyLevels();
     }
 }
