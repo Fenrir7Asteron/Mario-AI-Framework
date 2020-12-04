@@ -52,30 +52,35 @@ public class PlayLevel {
         return 0;
     }
 
-    private static double averageScore = 0;
-    private static double averageTimeLeft = 0;
+    private static double[] averageScore;
+    private static double[] averageTimeLeft;
 
-    private static void playLevel(MarioAgent agent, String levelName) throws IOException {
-        int levelWidth;
-        levelWidth = calcLevelWidth(levelName);
+    private static void playLevel(List<MarioAgent> agents, String levelName) throws IOException {
+        // Play level with each agent available
+        for (int i = 0; i < agents.size(); ++i) {
+            MarioAgent agent = agents.get(i);
 
-        if (levelWidth > 0) {
-            MarioGame game = new MarioGame();
-            MarioResult result;
-            if (agent instanceof MachineLearningModel) {
-                ((Agent) agent).setHyperParameters(new HashMap<>(Map.of(
-                        Agent.Hyperparameter.EXPLORATION_FACTOR.ordinal(), 0.188,
-                        Agent.Hyperparameter.MIXMAX_MAX_FACTOR.ordinal(), 0.125,
-                        Agent.Hyperparameter.MAX_DEPTH.ordinal(), 6
-                )));
+            int levelWidth;
+            levelWidth = calcLevelWidth(levelName);
+
+            if (levelWidth > 0) {
+                MarioGame game = new MarioGame();
+                MarioResult result;
+                if (agent instanceof MachineLearningModel) {
+                    ((Agent) agent).setHyperParameters(new HashMap<>(Map.of(
+                            Agent.Hyperparameter.EXPLORATION_FACTOR.ordinal(), 0.188,
+                            Agent.Hyperparameter.MIXMAX_MAX_FACTOR.ordinal(), 0.125,
+                            Agent.Hyperparameter.MAX_DEPTH.ordinal(), 6
+                    )));
+                }
+
+                result = game.runGame(agent, getLevel(levelName), TIME_FOR_LEVEL, MARIO_START_MODE, VISUALIZATION);
+                double score = result.getCompletionPercentage() * levelWidth * DISTANCE_MULTIPLIER;
+                double time = (double) result.getRemainingTime() / 1000;
+                System.out.println(levelName + ": Score = " + score + "; Time Left = " + time);
+                averageScore[i] += score;
+                averageTimeLeft[i] += time;
             }
-
-            result = game.runGame(agent, getLevel(levelName), TIME_FOR_LEVEL, MARIO_START_MODE, VISUALIZATION);
-            double score = result.getCompletionPercentage() * levelWidth * DISTANCE_MULTIPLIER;
-            double time = (double) result.getRemainingTime() / 1000;
-            System.out.println(levelName + ": Score = " + score + "; Time Left = " + time);
-            averageScore += score;
-            averageTimeLeft += time;
         }
     }
 
@@ -91,21 +96,31 @@ public class PlayLevel {
     public static void main(String[] args) throws IOException {
         List<MarioAgent> agents = new ArrayList<>();
         agents.add(new agents.bogdanMCTS.Agent());
-        agents.add(new agents.robinBaumgarten.Agent());
+        averageScore = new double[agents.size()];
+        averageTimeLeft = new double[agents.size()];
 
         tuneModels(agents); // Grid search hyperparameters
 
         // Play all levels from a level folder
-        Files.list(Paths.get(LEVEL_DIR)).forEach((x) -> {
+        ArrayList<String> levels = new ArrayList<>();
+        Files.list(Paths.get(LEVEL_DIR))
+                .forEach((x) -> levels.add(x.toString()));
+
+        for (int i = 0; i < LEVEL_COUNT; ++i) {
+            if (i == levels.size()) {
+                break;
+            }
             try {
-                playLevel(agents.get(0), x.toString());
+                playLevel(agents, levels.get(i));
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        });
+        }
 
-        System.out.println("Average score: " + averageScore / LEVEL_COUNT);
-        System.out.println("Average time left: " + averageTimeLeft / LEVEL_COUNT);
+        for (int i = 0; i < agents.size(); ++i) {
+            System.out.println("Average score for " + agents.get(i).getAgentName() + ": " + averageScore[i] / LEVEL_COUNT);
+            System.out.println("Average time left for " + agents.get(i).getAgentName() + ": " + averageTimeLeft[i] / LEVEL_COUNT);
+        }
 //        playLevel("./levels/original/lvl-12.txt");
     }
 }

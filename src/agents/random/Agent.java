@@ -11,9 +11,12 @@ public class Agent implements MarioAgent {
     private Random rnd;
     private ArrayList<boolean[]> choices;
 
+    public Agent(int randomSeed) {
+        rnd = new Random(randomSeed);
+    }
+
     @Override
     public void initialize(MarioForwardModel model, MarioTimer timer) {
-        rnd = new Random();
         choices = new ArrayList<>();
         //right run
         choices.add(new boolean[]{false, true, false, true, false});
