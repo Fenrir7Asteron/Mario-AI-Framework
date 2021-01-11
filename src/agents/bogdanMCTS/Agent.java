@@ -22,6 +22,7 @@ public class Agent implements MarioAgent, MachineLearningModel {
         enhancements = new HashSet<Enhancement>() {};
         enhancements.add(Enhancement.MIXMAX);
         enhancements.add(Enhancement.PARTIAL_EXPANSION);
+        enhancements.add(Enhancement.LOSS_AVOIDANCE);
         random = new Random(System.currentTimeMillis());
         tree = new MCTree(model, 1, enhancements, random);
     }

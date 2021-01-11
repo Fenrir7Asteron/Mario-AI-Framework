@@ -2,12 +2,12 @@ package agents.bogdanMCTS;
 
 import engine.core.MarioForwardModel;
 import engine.helper.GameStatus;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 public class TreeNode {
     public TreeNode parent = null;
-    public MCTree tree = null;
     public ArrayList<TreeNode> children;
     public MarioForwardModel sceneSnapshot = null;
     public int snapshotVersion;
@@ -21,12 +21,26 @@ public class TreeNode {
     int actionId;
     int repetitions = 1;
 
-    public TreeNode(int actionId, int repetitions, Random random, TreeNode parent, MCTree tree) {
+    public TreeNode(int actionId, int repetitions, Random random, TreeNode parent) {
         this.actionId = actionId;
         this.repetitions = repetitions;
         this.random = random;
         this.parent = parent;
-        this.tree = tree;
+        if (parent != null) {
+            this.depth = parent.depth + 1;
+        } else {
+            this.depth = 0;
+            this.snapshotVersion = 0;
+        }
+        this.children = new ArrayList<>();
+    }
+
+    public TreeNode(int actionId, int repetitions, Random random, TreeNode parent, MarioForwardModel sceneSnapshot) {
+        this.actionId = actionId;
+        this.repetitions = repetitions;
+        this.random = random;
+        this.parent = parent;
+        this.sceneSnapshot = sceneSnapshot;
         if (parent != null) {
             this.depth = parent.depth + 1;
         } else {
@@ -39,7 +53,7 @@ public class TreeNode {
     public TreeNode expandAll() {
         // Expand node to all possible actions
         for (int i = 0; i < Utils.availableActions.length; ++i) {
-            children.add(tree.allocateNode(i, repetitions, random, this));
+            children.add(NodePool.allocateNode(i, repetitions, random, this, null));
         }
 
         // Return random node among expands
@@ -58,7 +72,7 @@ public class TreeNode {
             }
         }
         int newId = freeIds.get(random.nextInt(freeIds.size()));
-        TreeNode child = tree.allocateNode(newId, repetitions, random, this);
+        TreeNode child = NodePool.allocateNode(newId, repetitions, random, this, null);
         children.add(child);
         return child;
     }
@@ -73,10 +87,34 @@ public class TreeNode {
         }
     }
 
-    public void randomMove() {
-        for (int i = 0; i < repetitions; i++) {
-            int rand = random.nextInt(Utils.availableActions.length);
-            this.sceneSnapshot.advance(Utils.availableActions[rand]);
+    public boolean[] getRandomMove() {
+        int rand = random.nextInt(Utils.availableActions.length);
+        return Utils.availableActions[rand];
+    }
+
+    public List<boolean[]> getAllMoves() {
+        return Arrays.asList(Utils.availableActions.clone());
+    }
+
+    public void makeMove(boolean[] move) {
+        sceneSnapshot.advance(move);
+    }
+
+    public void makeMove(boolean[] move, int repetitions) {
+        for (int i = 0; i < repetitions; ++i) {
+            makeMove(move);
+        }
+    }
+
+    public void makeMoves(List<boolean[]> moves) {
+        for (var move : moves) {
+            makeMove(move);
+        }
+    }
+
+    public void makeMoves(List<boolean[]> moves, int repetitions) {
+        for (var move : moves) {
+            makeMove(move, repetitions);
         }
     }
 
@@ -86,11 +124,11 @@ public class TreeNode {
     public boolean isLeaf() {
         return children.isEmpty();
     }
-    public boolean isGameOver() {
+    public boolean isLost() {
         if (this.sceneSnapshot == null) {
             return false;
         }
-        return this.sceneSnapshot.getGameStatus() != GameStatus.RUNNING;
+        return sceneSnapshot.getNumLives() == -1 || sceneSnapshot.getGameStatus() == GameStatus.LOSE;
     }
 
     public void updateReward(double reward) {
@@ -114,6 +152,6 @@ public class TreeNode {
         for (TreeNode child : children) {
             child.free();
         }
-        tree.deallocateNode(this);
+        NodePool.deallocateNode(this);
     }
 }

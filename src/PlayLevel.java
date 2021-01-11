@@ -15,8 +15,8 @@ public class PlayLevel {
     private static final int DISTANCE_MULTIPLIER = 16;
     private static final int TIME_FOR_LEVEL = 40;
     private static final int MARIO_START_MODE = 0;
-    private static final String LEVEL_DIR = "./levels/thesisTestLevels/";
-    private static final int LEVEL_COUNT = 100;
+    private static final String LEVEL_DIR = "./levels/original/";
+    private static final int LEVEL_COUNT = 10;
     private static final Boolean VISUALIZATION = true;
 
     public static void printResults(MarioResult result) {
