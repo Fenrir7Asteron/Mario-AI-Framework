@@ -19,15 +19,15 @@ public class Utils {
 //    };
 
     // Left, Right, Down, Speed, Jump
-    static boolean[][] availableActions = new boolean[][] {
-        new boolean[] {false, true, false, false, false},
-        new boolean[] {false, true, false, true, false},
-        new boolean[] {false, true, false, false, true},
-        new boolean[] {false, true, false, true, true},
-        new boolean[] {true, false, false, false, false},
-        new boolean[] {true, false, false, true, false},
-        new boolean[] {true, false, false, false, true},
-        new boolean[] {true, false, false, true, true},
+    public static boolean[][] availableActions = new boolean[][]{
+            new boolean[]{false, true, false, false, false},
+            new boolean[]{false, true, false, true, false},
+            new boolean[]{false, true, false, false, true},
+            new boolean[]{false, true, false, true, true},
+            new boolean[]{true, false, false, false, false},
+            new boolean[]{true, false, false, true, false},
+            new boolean[]{true, false, false, false, true},
+            new boolean[]{true, false, false, true, true},
     };
 
 //    public static boolean[] getAction(int ind) {

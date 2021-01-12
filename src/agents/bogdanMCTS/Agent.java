@@ -17,20 +17,22 @@ public class Agent implements MarioAgent, MachineLearningModel {
         MIXMAX_MAX_FACTOR,
     }
 
+    private MCTree tree = null;
+
     @Override
     public void initialize(MarioForwardModel model, MarioTimer timer) {
-        enhancements = new HashSet<Enhancement>() {};
+        HashSet<Enhancement> enhancements = new HashSet<>();
         enhancements.add(Enhancement.MIXMAX);
         enhancements.add(Enhancement.PARTIAL_EXPANSION);
         enhancements.add(Enhancement.LOSS_AVOIDANCE);
-        random = new Random(System.currentTimeMillis());
-        tree = new MCTree(model, 1, enhancements, random);
+        RNG.createRNG();
+        tree = new MCTree(model, 1, enhancements);
     }
 
     @Override
     public boolean[] getActions(MarioForwardModel model, MarioTimer timer) {
         tree.updateModel(model);
-        action = tree.search(timer);
+        boolean[] action = tree.search(timer);
 //        System.out.println(tree.depth);
         return action;
     }
@@ -60,9 +62,4 @@ public class Agent implements MarioAgent, MachineLearningModel {
         grid.put(Hyperparameter.MAX_DEPTH.ordinal(), Arrays.asList(2, 4, 6, 10));
         return grid;
     }
-
-    private MCTree tree = null;
-    private Random random = null;
-    private HashSet<Enhancement> enhancements;
-    private boolean[] action;
 }
