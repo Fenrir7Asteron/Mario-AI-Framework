@@ -7,13 +7,21 @@ import engine.core.MarioTimer;
 import engine.helper.GameStatus;
 
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class MCTree {
+    static private final int MAX_THREAD_POOL_SIZE = 16;
+
     static int MAX_DEPTH; // = 6;
     static double EXPLORATION_FACTOR; // = 0.188f;
     static double MIXMAX_MAX_FACTOR; // = 0.125f;
     static int repetitions = 1;
     static Set<Enhancement> enhancements;
+
+    private final ExecutorService threadPool = Executors.newFixedThreadPool(MAX_THREAD_POOL_SIZE);
 
     private TreeNode root = null;
     private int depth;
@@ -114,9 +122,9 @@ public class MCTree {
     }
 
     private double simulate(TreeNode sourceNode) {
-        sourceNode.simulatePos();
+        var sourceSnapshot = sourceNode.getParent().getSceneSnapshot();
 
-        TreeNode simulationNode = NodePool.cloneNode(sourceNode);
+        TreeNode simulationNode = NodePool.allocateNode(-1, sourceNode, sourceSnapshot.clone());
 
         int step = 0;
         ArrayList<boolean[]> moveHistory = new ArrayList<>();
@@ -130,7 +138,8 @@ public class MCTree {
             if (simulationNode.isLost()) {
                 if (enhancements.contains(Enhancement.LOSS_AVOIDANCE)) {
                     // Create another simulation node and advance it until one move before the loss.
-                    TreeNode lossAvoidingSimulationNode = NodePool.cloneNode(sourceNode);
+                    TreeNode lossAvoidingSimulationNode = NodePool.allocateNode(-1, sourceNode,
+                            sourceSnapshot.clone());
                     lossAvoidingSimulationNode.makeMoves(moveHistory);
 
                     List<boolean[]> availableMoves = lossAvoidingSimulationNode.getAllMoves();
@@ -138,11 +147,28 @@ public class MCTree {
 
                     // Try all available moves and return the best result.
                     // During the Loss Avoidance max simulation depth is ignored for the optimization purposes.
+                    ArrayList<Future<Double>> futureRewards = new ArrayList<>();
+
                     for (var moveVariant : availableMoves) {
-                        TreeNode nodeVariant = NodePool.cloneNode(lossAvoidingSimulationNode);
-                        nodeVariant.makeMove(moveVariant);
-                        maxReward = Math.max(maxReward, calcReward(sourceNode.getSceneSnapshot(),
-                                nodeVariant.getSceneSnapshot()));
+//                        TreeNode nodeVariant = NodePool.cloneNode(lossAvoidingSimulationNode);
+//                        nodeVariant.makeMove(moveVariant);
+//                        maxReward = Math.max(maxReward, calcReward(sourceNode.getSceneSnapshot(),
+//                                nodeVariant.getSceneSnapshot()));
+                        futureRewards.add(threadPool.submit(() -> {
+                            TreeNode nodeVariant = NodePool.allocateNode(-1, lossAvoidingSimulationNode,
+                                    lossAvoidingSimulationNode.getSceneSnapshot().clone());
+                            nodeVariant.makeMove(moveVariant);
+                            return calcReward(sourceSnapshot,
+                                    nodeVariant.getSceneSnapshot());
+                        }));
+                    }
+
+                    for (var futureReward : futureRewards) {
+                        try {
+                            maxReward = Math.max(maxReward, futureReward.get());
+                        } catch (InterruptedException | ExecutionException ex) {
+                            ex.printStackTrace();
+                        }
                     }
 
                     return maxReward;
@@ -159,7 +185,7 @@ public class MCTree {
         }
 
         // Return reward at the end of a simulation.
-        return calcReward(sourceNode.getSceneSnapshot(), simulationNode.getSceneSnapshot());
+        return calcReward(sourceSnapshot, simulationNode.getSceneSnapshot());
     }
 
     private double calcReward(MarioForwardModel startSnapshot, MarioForwardModel endSnapshot) {

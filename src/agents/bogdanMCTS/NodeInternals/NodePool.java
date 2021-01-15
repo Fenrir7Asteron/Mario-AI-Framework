@@ -39,10 +39,4 @@ public class NodePool {
         node.parent = null;
         nodePool.push(node);
     }
-
-    public static TreeNode cloneNode(TreeNode sourceNode) {
-        var treeNodeData = sourceNode.data;
-        return allocateNode(treeNodeData.actionId,
-                sourceNode.parent, treeNodeData.sceneSnapshot.clone());
-    }
 }
