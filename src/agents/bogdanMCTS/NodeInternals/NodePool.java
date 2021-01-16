@@ -6,13 +6,15 @@ import java.util.Random;
 import java.util.Stack;
 
 public class NodePool {
+    public static final int MAX_POOL_SIZE = 500;
+
     private static Stack<TreeNode> nodePool;
 
     public static void createPool() {
         nodePool = new Stack<>();
     }
 
-    public static TreeNode allocateNode(int actionId, TreeNode parent,
+    public synchronized static TreeNode allocateNode(int actionId, TreeNode parent,
                                         MarioForwardModel sceneSnapshot) {
         if (!nodePool.isEmpty()) {
             var treeNode = nodePool.pop();
@@ -37,6 +39,8 @@ public class NodePool {
         treeNodeData.actionId = -1;
         node.children.clear();
         node.parent = null;
-        nodePool.push(node);
+        if (nodePool.size() < MAX_POOL_SIZE) {
+            nodePool.push(node);
+        }
     }
 }

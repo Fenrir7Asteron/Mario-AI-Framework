@@ -90,6 +90,10 @@ public class TreeNode {
         data.maxConfidence = maxConfidence;
     }
 
+    public void setSceneSnapshot(MarioForwardModel model) {
+        data.sceneSnapshot = model.clone();
+    }
+
     public TreeNode expandAll() {
         simulatePos();
 
@@ -196,7 +200,14 @@ public class TreeNode {
         if (this.data.sceneSnapshot == null) {
             return false;
         }
-        return data.sceneSnapshot.getNumLives() == -1 || data.sceneSnapshot.getGameStatus() == GameStatus.LOSE;
+        return data.sceneSnapshot.getGameStatus() == GameStatus.LOSE;
+    }
+
+    public boolean isWin() {
+        if (this.data.sceneSnapshot == null) {
+            return false;
+        }
+        return data.sceneSnapshot.getGameStatus() == GameStatus.WIN;
     }
 
     public void updateReward(double reward) {
@@ -206,7 +217,7 @@ public class TreeNode {
         data.averageReward = data.totalReward / data.visitCount;
     }
 
-    public void updateSnapshot() {
+    public void poolSnapshotFromParent() {
         data.sceneSnapshot = parent.data.sceneSnapshot.clone();
         if (data.visitCount > 0) {
             System.out.println("WARNING: VISIT COUNT > 0");
@@ -216,10 +227,33 @@ public class TreeNode {
         }
     }
 
-    public void free() {
+    public void clearSubTree() {
         for (TreeNode child : children) {
-            child.free();
+            child.clearSubTree();
         }
         NodePool.deallocateNode(this);
+    }
+
+    public void detachFromTree() {
+        // Break links between a parent and the current node.
+        if (parent != null) {
+            parent.children.remove(this);
+        }
+        parent = null;
+        recalculateSubTreeDepth(0);
+    }
+
+    public int getMaxSubTreeDepth() {
+        if (!children.isEmpty()) {
+            return children.get(0).getMaxSubTreeDepth();
+        }
+        return data.depth;
+    }
+
+    private void recalculateSubTreeDepth(int newDepth) {
+        data.depth = newDepth;
+        for (var child : children) {
+            child.recalculateSubTreeDepth(newDepth + 1);
+        }
     }
 }

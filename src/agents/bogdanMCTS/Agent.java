@@ -24,6 +24,7 @@ public class Agent implements MarioAgent, MachineLearningModel {
         HashSet<Enhancement> enhancements = new HashSet<>();
         enhancements.add(Enhancement.MIXMAX);
         enhancements.add(Enhancement.PARTIAL_EXPANSION);
+        enhancements.add(Enhancement.TREE_REUSE);
         enhancements.add(Enhancement.LOSS_AVOIDANCE);
         RNG.createRNG();
         tree = new MCTree(model, 1, enhancements);
@@ -51,7 +52,7 @@ public class Agent implements MarioAgent, MachineLearningModel {
         }
         MCTree.EXPLORATION_FACTOR = (double) hyperParameters.get(Hyperparameter.EXPLORATION_FACTOR.ordinal());
         MCTree.MIXMAX_MAX_FACTOR = (double) hyperParameters.get(Hyperparameter.MIXMAX_MAX_FACTOR.ordinal());
-        MCTree.MAX_DEPTH = (int) hyperParameters.get(Hyperparameter.MAX_DEPTH.ordinal());
+        MCTree.MAX_SIMULATION_DEPTH = (int) hyperParameters.get(Hyperparameter.MAX_DEPTH.ordinal());
     }
 
     @Override

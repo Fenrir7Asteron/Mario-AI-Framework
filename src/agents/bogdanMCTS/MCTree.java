@@ -13,9 +13,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class MCTree {
-    static private final int MAX_THREAD_POOL_SIZE = 16;
+    public static final int MAX_THREAD_POOL_SIZE = 8;
+    public static final double PROGRESS_WEIGHT = 0.5;
+    public static final double DAMAGE_WEIGHT = 0.5;
+    public static final double PATH_LENGTH_WEIGHT = 0.5;
 
-    static int MAX_DEPTH; // = 6;
+    static int MAX_SIMULATION_DEPTH; // = 6;
     static double EXPLORATION_FACTOR; // = 0.188f;
     static double MIXMAX_MAX_FACTOR; // = 0.125f;
     static int repetitions = 1;
@@ -24,14 +27,14 @@ public class MCTree {
     private final ExecutorService threadPool = Executors.newFixedThreadPool(MAX_THREAD_POOL_SIZE);
 
     private TreeNode root = null;
-    private int depth;
+    private int maxTreeDepth;
 
     MCTree(MarioForwardModel model, int repetitions, Set<Enhancement> enhancements) {
         MCTree.repetitions = repetitions;
         MCTree.enhancements = enhancements;
         NodePool.createPool();
         initializeRoot(model);
-        depth = 0;
+        maxTreeDepth = 0;
     }
 
     public static double getExplorationFactor() {
@@ -42,8 +45,8 @@ public class MCTree {
         return MIXMAX_MAX_FACTOR;
     }
 
-    public static int getMaxDepth() {
-        return MAX_DEPTH;
+    public static int getMaxSimulationDepth() {
+        return MAX_SIMULATION_DEPTH;
     }
 
     public static int getRepetitions() {
@@ -73,18 +76,29 @@ public class MCTree {
         }
         TreeNode bestNode = root.getBestChild(false);
         int bestActionId = bestNode.getActionId();
-        clearTree();
+        if (!MCTree.enhancements.contains(Enhancement.TREE_REUSE)) {
+            clearTree();
+        } else {
+            // By detaching the best node from tree it and it's subtree are not cleared.
+            bestNode.detachFromTree();
+            clearTree();
+            root = bestNode;
+            maxTreeDepth = root.getMaxSubTreeDepth();
+        }
         return Utils.availableActions[bestActionId];
     }
 
     private void clearTree() {
-        root.free();
+        root.clearSubTree();
+        root = null;
     }
 
     void updateModel(MarioForwardModel model) {
-//        root.sceneSnapshot = model;
-//        root.snapshotVersion++;
-        initializeRoot(model);
+        if (root == null) {
+            initializeRoot(model);
+        } else {
+            root.setSceneSnapshot(model);
+        }
     }
 
     private TreeNode expandIfNeeded(TreeNode node) {
@@ -94,7 +108,7 @@ public class MCTree {
             } else if (!enhancements.contains(Enhancement.PARTIAL_EXPANSION)) {
                 node = node.expandAll();
             }
-            depth = Math.max(depth, node.getDepth()) - root.getDepth();
+            maxTreeDepth = Math.max(maxTreeDepth, node.getDepth());
         }
         return node;
     }
@@ -103,7 +117,7 @@ public class MCTree {
         TreeNode current = root;
         while (!current.isLeaf()) {
             if (current.getSnapshotVersion() != root.getSnapshotVersion()) {
-                current.updateSnapshot();
+                current.poolSnapshotFromParent();
             }
             TreeNode next = current.getBestChild(true);
             int n = current.getVisitCount();
@@ -124,12 +138,12 @@ public class MCTree {
     private double simulate(TreeNode sourceNode) {
         var sourceSnapshot = sourceNode.getParent().getSceneSnapshot();
 
-        TreeNode simulationNode = NodePool.allocateNode(-1, sourceNode, sourceSnapshot.clone());
+        TreeNode simulationNode = NodePool.allocateNode(-1, null, sourceSnapshot.clone());
 
         int step = 0;
         ArrayList<boolean[]> moveHistory = new ArrayList<>();
 
-        while (step < MAX_DEPTH) {
+        while (step < MAX_SIMULATION_DEPTH) {
             ++step;
 
             var nextMove = simulationNode.getRandomMove();
@@ -138,7 +152,7 @@ public class MCTree {
             if (simulationNode.isLost()) {
                 if (enhancements.contains(Enhancement.LOSS_AVOIDANCE)) {
                     // Create another simulation node and advance it until one move before the loss.
-                    TreeNode lossAvoidingSimulationNode = NodePool.allocateNode(-1, sourceNode,
+                    TreeNode lossAvoidingSimulationNode = NodePool.allocateNode(-1, null,
                             sourceSnapshot.clone());
                     lossAvoidingSimulationNode.makeMoves(moveHistory);
 
@@ -155,11 +169,10 @@ public class MCTree {
 //                        maxReward = Math.max(maxReward, calcReward(sourceNode.getSceneSnapshot(),
 //                                nodeVariant.getSceneSnapshot()));
                         futureRewards.add(threadPool.submit(() -> {
-                            TreeNode nodeVariant = NodePool.allocateNode(-1, lossAvoidingSimulationNode,
+                            TreeNode nodeVariant = NodePool.allocateNode(-1, null,
                                     lossAvoidingSimulationNode.getSceneSnapshot().clone());
                             nodeVariant.makeMove(moveVariant);
-                            return calcReward(sourceSnapshot,
-                                    nodeVariant.getSceneSnapshot());
+                            return calcReward(sourceSnapshot, nodeVariant.getSceneSnapshot(), sourceNode.getDepth());
                         }));
                     }
 
@@ -175,7 +188,7 @@ public class MCTree {
                 } else {
                     return 0.0;
                 }
-            } else if (simulationNode.getSceneSnapshot().getGameStatus() == GameStatus.WIN) {
+            } else if (simulationNode.isWin()) {
                 return 1.0;
             }
 
@@ -185,19 +198,30 @@ public class MCTree {
         }
 
         // Return reward at the end of a simulation.
-        return calcReward(sourceSnapshot, simulationNode.getSceneSnapshot());
+        return calcReward(sourceSnapshot, simulationNode.getSceneSnapshot(), sourceNode.getDepth());
     }
 
-    private double calcReward(MarioForwardModel startSnapshot, MarioForwardModel endSnapshot) {
+    private double calcReward(MarioForwardModel startSnapshot, MarioForwardModel endSnapshot, int currentDepth) {
+        if (endSnapshot.getGameStatus() != GameStatus.RUNNING) {
+            // If it is Game Over, there is either win or lose.
+            return endSnapshot.getGameStatus() == GameStatus.WIN ? 1.0f : 0.0f;
+        }
+
         double startX = startSnapshot.getMarioFloatPos()[0];
         double endX = endSnapshot.getMarioFloatPos()[0];
         int damage = Math.max(0, startSnapshot.getMarioMode() - endSnapshot.getMarioMode()) +
                 Math.max(0, startSnapshot.getNumLives() - endSnapshot.getNumLives());
 
-        double reward = 0.5 + 0.5 * (endX - startX) / (11.0 * (1 + MAX_DEPTH)) - 0.5 * damage;
-        if (reward < 0) {
-            System.out.println("Warning: reward is less than zero, reward = " + reward);
-        }
+        double reward = 0.5 +
+                PROGRESS_WEIGHT * (endX - startX) / (11.0 * (1 + MAX_SIMULATION_DEPTH))
+//                        + PATH_LENGTH_WEIGHT * (maxTreeDepth - currentDepth) / maxTreeDepth
+                        - DAMAGE_WEIGHT * damage;
+
+//        System.out.println(reward);
+//        if (reward < 0) {
+//            System.out.println("Warning: reward is less than zero, reward = " + reward);
+//        }
+
         return reward;
     }
 
@@ -212,5 +236,6 @@ public class MCTree {
         MIXMAX,
         PARTIAL_EXPANSION,
         LOSS_AVOIDANCE,
+        TREE_REUSE
     }
 }
