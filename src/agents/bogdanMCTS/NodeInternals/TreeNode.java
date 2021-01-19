@@ -1,5 +1,6 @@
 package agents.bogdanMCTS.NodeInternals;
 
+import agents.bogdanMCTS.Enchancements.MixMax;
 import agents.bogdanMCTS.MCTree;
 import agents.bogdanMCTS.RNG;
 import agents.bogdanMCTS.Utils;
@@ -71,16 +72,24 @@ public class TreeNode {
         return data.maxConfidence;
     }
 
+    public double getAverageReward() {
+        return data.averageReward;
+    }
+
     public TreeNode getBestChild(boolean explore) {
-        double maxConfidence = Double.NEGATIVE_INFINITY;
-        TreeNode best = null;
-        for (TreeNode child : children) {
+        TreeNode best = children.get(0);
+        double maxConfidence = best.calcConfidence(explore);
+
+        for (int i = 1; i < children.size(); ++i) {
+            var child = children.get(i);
+
             double confidence = child.calcConfidence(explore);
             if (confidence > maxConfidence) {
                 maxConfidence = confidence;
                 best = child;
             }
         }
+
         setMaxConfidence(maxConfidence);
 
         return best;
@@ -92,11 +101,10 @@ public class TreeNode {
 
     public void setSceneSnapshot(MarioForwardModel model) {
         data.sceneSnapshot = model.clone();
+        data.snapshotVersion++;
     }
 
     public TreeNode expandAll() {
-        simulatePos();
-
         // Expand node to all possible actions
         for (int i = 0; i < Utils.availableActions.length; ++i) {
             children.add(NodePool.allocateNode(i, this, null));
@@ -107,8 +115,6 @@ public class TreeNode {
     }
 
     public TreeNode expandOne() {
-        simulatePos();
-
         Set<Integer> ids = new HashSet<>();
         for (TreeNode treeNode : children) {
             ids.add(treeNode.data.actionId);
@@ -126,13 +132,18 @@ public class TreeNode {
     }
 
     public void simulatePos() {
-        if (parent != null && data.sceneSnapshot == null) {
-            data.sceneSnapshot = parent.data.sceneSnapshot.clone();
+        if (parent != null && (data.sceneSnapshot == null || getSnapshotVersion() < parent.getSnapshotVersion())) {
+            data.sceneSnapshot = parent.getSceneSnapshot().clone();
+            data.snapshotVersion = parent.getSnapshotVersion();
 
             for (int i = 0; i < MCTree.getRepetitions(); i++) {
                 if (Utils.availableActions.length > data.actionId) {
                     data.sceneSnapshot.advance(Utils.availableActions[data.actionId]);
                 }
+            }
+
+            if (isLost()) {
+                prune();
             }
         }
     }
@@ -147,15 +158,20 @@ public class TreeNode {
     }
 
     public double calcConfidence(boolean explore) {
+        if (isPruned()) {
+            return Double.NEGATIVE_INFINITY;
+        }
+
         int n = parent.getChildrenSize();
         int nj = getChildrenSize();
+
         if (nj == 0) {
             return Double.POSITIVE_INFINITY;
         }
+
         double exploitation;
         if (MCTree.getEnhancements().contains(MCTree.Enhancement.MIXMAX)) {
-            double mixMax = MCTree.getMixMaxFactor();
-            exploitation = mixMax * data.maxReward + (1.0f - mixMax) * data.averageReward;
+            exploitation = MixMax.getExploitation(data.averageReward, data.maxReward);
         } else {
             exploitation = data.averageReward;
         }
@@ -210,6 +226,18 @@ public class TreeNode {
         return data.sceneSnapshot.getGameStatus() == GameStatus.WIN;
     }
 
+    public boolean isPruned() {
+        return data.isPruned;
+    }
+
+    public void prune() {
+        data.isPruned = true;
+        data.visitCount = 0;
+        data.maxReward = MCTree.MIN_REWARD;
+        data.totalReward = 0.0f;
+        updateReward(MCTree.MIN_REWARD);
+    }
+
     public void updateReward(double reward) {
         ++data.visitCount;
         data.totalReward += reward;
@@ -219,9 +247,9 @@ public class TreeNode {
 
     public void poolSnapshotFromParent() {
         data.sceneSnapshot = parent.data.sceneSnapshot.clone();
-        if (data.visitCount > 0) {
-            System.out.println("WARNING: VISIT COUNT > 0");
-        }
+//        if (data.visitCount > 0) {
+//            System.out.println("WARNING: VISIT COUNT > 0");
+//        }
         for (int i = 0; i < MCTree.getRepetitions(); i++) {
             data.sceneSnapshot.advance(Utils.availableActions[data.actionId]);
         }

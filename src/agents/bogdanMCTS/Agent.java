@@ -10,7 +10,7 @@ import java.util.*;
 /**
  * @author BogdanFedotov
  */
-public class Agent implements MarioAgent, MachineLearningModel {
+public class Agent implements MarioAgent {
     public enum Hyperparameter {
         MAX_DEPTH,
         EXPLORATION_FACTOR,
@@ -23,9 +23,10 @@ public class Agent implements MarioAgent, MachineLearningModel {
     public void initialize(MarioForwardModel model, MarioTimer timer) {
         HashSet<Enhancement> enhancements = new HashSet<>();
         enhancements.add(Enhancement.MIXMAX);
-        enhancements.add(Enhancement.PARTIAL_EXPANSION);
+//        enhancements.add(Enhancement.PARTIAL_EXPANSION);
         enhancements.add(Enhancement.TREE_REUSE);
         enhancements.add(Enhancement.LOSS_AVOIDANCE);
+        enhancements.add(Enhancement.HARD_PRUNING);
         RNG.createRNG();
         tree = new MCTree(model, 1, enhancements);
     }
@@ -43,24 +44,24 @@ public class Agent implements MarioAgent, MachineLearningModel {
         return "MyMCTSAgent";
     }
 
-    @Override
-    public void setHyperParameters(HashMap<Integer, Number> hyperParameters) {
-        for (var hp : Hyperparameter.values()) {
-            if (!hyperParameters.containsKey(hp.ordinal())) {
-                throw new IllegalArgumentException("Wrong hyperparameters. Please, use corresponding public enum.");
-            }
-        }
-        MCTree.EXPLORATION_FACTOR = (double) hyperParameters.get(Hyperparameter.EXPLORATION_FACTOR.ordinal());
-        MCTree.MIXMAX_MAX_FACTOR = (double) hyperParameters.get(Hyperparameter.MIXMAX_MAX_FACTOR.ordinal());
-        MCTree.MAX_SIMULATION_DEPTH = (int) hyperParameters.get(Hyperparameter.MAX_DEPTH.ordinal());
-    }
-
-    @Override
-    public HashMap<Integer, List<Number>> getHyperParameterGrid() {
-        HashMap<Integer, List<Number>> grid = new HashMap<>();
-        grid.put(Hyperparameter.EXPLORATION_FACTOR.ordinal(), Arrays.asList(0.0, 0.125, 0.188, 0.25));
-        grid.put(Hyperparameter.MIXMAX_MAX_FACTOR.ordinal(), Arrays.asList(0.0, 0.125, 0.25, 1));
-        grid.put(Hyperparameter.MAX_DEPTH.ordinal(), Arrays.asList(2, 4, 6, 10));
-        return grid;
-    }
+//    @Override
+//    public void setHyperParameters(HashMap<Integer, Number> hyperParameters) {
+//        for (var hp : Hyperparameter.values()) {
+//            if (!hyperParameters.containsKey(hp.ordinal())) {
+//                throw new IllegalArgumentException("Wrong hyperparameters. Please, use corresponding public enum.");
+//            }
+//        }
+//        MCTree.EXPLORATION_FACTOR = (double) hyperParameters.get(Hyperparameter.EXPLORATION_FACTOR.ordinal());
+//        MCTree.MIXMAX_MAX_FACTOR = (double) hyperParameters.get(Hyperparameter.MIXMAX_MAX_FACTOR.ordinal());
+//        MCTree.MAX_SIMULATION_DEPTH = (int) hyperParameters.get(Hyperparameter.MAX_DEPTH.ordinal());
+//    }
+//
+//    @Override
+//    public HashMap<Integer, List<Number>> getHyperParameterGrid() {
+//        HashMap<Integer, List<Number>> grid = new HashMap<>();
+//        grid.put(Hyperparameter.EXPLORATION_FACTOR.ordinal(), Arrays.asList(0.0, 0.125, 0.188, 0.25));
+//        grid.put(Hyperparameter.MIXMAX_MAX_FACTOR.ordinal(), Arrays.asList(0.0, 0.125, 0.25, 1));
+//        grid.put(Hyperparameter.MAX_DEPTH.ordinal(), Arrays.asList(2, 4, 6, 10));
+//        return grid;
+//    }
 }

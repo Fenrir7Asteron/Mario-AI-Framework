@@ -15,8 +15,8 @@ public class PlayLevel {
     private static final int DISTANCE_MULTIPLIER = 16;
     private static final int TIME_FOR_LEVEL = 40;
     private static final int MARIO_START_MODE = 0;
-    private static final String LEVEL_DIR = "./levels/thesisTestLevels/";
-    private static final int LEVEL_COUNT = 100;
+    private static final String LEVEL_DIR = "./levels/original/";
+    private static final int PLAY_REPETITION_COUNT = 500;
     private static final Boolean VISUALIZATION = true;
 
     public static void printResults(MarioResult result) {
@@ -66,13 +66,14 @@ public class PlayLevel {
             if (levelWidth > 0) {
                 MarioGame game = new MarioGame();
                 MarioResult result;
-                if (agent instanceof MachineLearningModel) {
-                    ((Agent) agent).setHyperParameters(new HashMap<>(Map.of(
-                            Agent.Hyperparameter.EXPLORATION_FACTOR.ordinal(), 0.188,
-                            Agent.Hyperparameter.MIXMAX_MAX_FACTOR.ordinal(), 0.125,
-                            Agent.Hyperparameter.MAX_DEPTH.ordinal(), 6
-                    )));
-                }
+
+//                if (agent instanceof MachineLearningModel) {
+//                    ((Agent) agent).setHyperParameters(new HashMap<>(Map.of(
+//                            Agent.Hyperparameter.EXPLORATION_FACTOR.ordinal(), 0.188,
+//                            Agent.Hyperparameter.MIXMAX_MAX_FACTOR.ordinal(), 0.125,
+//                            Agent.Hyperparameter.MAX_DEPTH.ordinal(), 6
+//                    )));
+//                }
 
                 result = game.runGame(agent, getLevel(levelName), TIME_FOR_LEVEL, MARIO_START_MODE, VISUALIZATION);
                 double score = result.getCompletionPercentage() * levelWidth * DISTANCE_MULTIPLIER;
@@ -93,6 +94,43 @@ public class PlayLevel {
         }
     }
 
+    private static void playAllFolderLevels(List<MarioAgent> agents, final String levelFolder) throws IOException {
+        // Play all levels from a level folder
+        ArrayList<String> levels = new ArrayList<>();
+        Files.list(Paths.get(levelFolder))
+                .forEach((x) -> levels.add(x.toString()));
+
+        for (var level : levels) {
+            try {
+                playLevel(agents, level);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        printStatistics(agents, levels.size());
+    }
+
+    private static void playSingleLevel(List<MarioAgent> agents, final String levelPath, final int playRepetitionCount) {
+        try {
+            for (int i = 0; i < playRepetitionCount; ++i) {
+                playLevel(agents, levelPath);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        printStatistics(agents, PLAY_REPETITION_COUNT);
+    }
+
+    private static void printStatistics(List<MarioAgent> agents, final int count) {
+        for (int i = 0; i < agents.size(); ++i) {
+            System.out.println("--------------------------------------------------------------------");
+            System.out.println("Average score for " + agents.get(i).getAgentName() + ": " + averageScore[i] / count);
+            System.out.println("Average time left for " + agents.get(i).getAgentName() + ": " + averageTimeLeft[i] / count);
+        }
+    }
+
     public static void main(String[] args) throws IOException {
         List<MarioAgent> agents = new ArrayList<>();
         agents.add(new agents.bogdanMCTS.Agent());
@@ -101,26 +139,8 @@ public class PlayLevel {
 
         tuneModels(agents); // Grid search hyperparameters
 
-        // Play all levels from a level folder
-        ArrayList<String> levels = new ArrayList<>();
-        Files.list(Paths.get(LEVEL_DIR))
-                .forEach((x) -> levels.add(x.toString()));
+        playAllFolderLevels(agents, LEVEL_DIR);
 
-        for (int i = 0; i < LEVEL_COUNT; ++i) {
-            if (i == levels.size()) {
-                break;
-            }
-            try {
-                playLevel(agents, levels.get(i));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        for (int i = 0; i < agents.size(); ++i) {
-            System.out.println("Average score for " + agents.get(i).getAgentName() + ": " + averageScore[i] / LEVEL_COUNT);
-            System.out.println("Average time left for " + agents.get(i).getAgentName() + ": " + averageTimeLeft[i] / LEVEL_COUNT);
-        }
-//        playLevel("./levels/original/lvl-12.txt");
+//        playSingleLevel(agents, "./levels/thesisTestLevels/lvl-killer_plant.txt", PLAY_REPETITION_COUNT);
     }
 }

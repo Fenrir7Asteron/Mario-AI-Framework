@@ -16,6 +16,7 @@ class TreeNodeData {
     int visitCount;
     int depth;
     int actionId;
+    boolean isPruned;
 
     TreeNodeData(int actionId) {
         this.actionId = actionId;
@@ -26,6 +27,7 @@ class TreeNodeData {
         this.snapshotVersion = 0;
         this.visitCount = 0;
         this.depth = 0;
+        this.isPruned = false;
     }
 
     TreeNodeData(int actionId, MarioForwardModel sceneSnapshot) {
@@ -38,5 +40,6 @@ class TreeNodeData {
         this.snapshotVersion = 0;
         this.visitCount = 0;
         this.depth = 0;
+        this.isPruned = false;
     }
 }
