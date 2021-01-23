@@ -1,8 +1,11 @@
 package agents.bogdanMCTS;
 
 import agents.bogdanMCTS.Enchancements.HardPruning;
+import agents.bogdanMCTS.Enchancements.MixMax;
+import agents.bogdanMCTS.Enchancements.SafetyPrepruning;
 import agents.bogdanMCTS.NodeInternals.NodePool;
 import agents.bogdanMCTS.NodeInternals.TreeNode;
+import agents.bogdanMCTS.Workers.ThreadPool;
 import engine.core.MarioForwardModel;
 import engine.core.MarioTimer;
 import engine.helper.GameStatus;
@@ -14,7 +17,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class MCTree {
-    public static final int MAX_THREAD_POOL_SIZE = 8;
+
     public static final double PROGRESS_WEIGHT = 0.5;
     public static final double DAMAGE_WEIGHT = 0.5;
     public static final double PATH_LENGTH_WEIGHT = 0.5;
@@ -25,8 +28,6 @@ public class MCTree {
     static double EXPLORATION_FACTOR = 0.188f;
     static int repetitions = 1;
     static Set<Enhancement> enhancements;
-
-    private final ExecutorService threadPool = Executors.newFixedThreadPool(MAX_THREAD_POOL_SIZE);
 
     private TreeNode root = null;
     private int maxTreeDepth;
@@ -66,6 +67,11 @@ public class MCTree {
 
     public boolean[] search(MarioTimer timer) {
         int count = 0;
+
+        if (MCTree.enhancements.contains(Enhancement.SAFETY_PREPRUNING)) {
+            SafetyPrepruning.safetyPreprune(root);
+        }
+
         while (timer.getRemainingTime() > 0) {
             ++count;
             TreeNode nodeSelected = selectAndExpand();
@@ -142,6 +148,7 @@ public class MCTree {
         sourceNode.simulatePos();
 
         if (sourceNode.isLost()) {
+            sourceNode.prune();
             return MIN_REWARD;
         }
 
@@ -178,11 +185,7 @@ public class MCTree {
                 ArrayList<Future<Double>> futureRewards = new ArrayList<>();
 
                 for (var moveVariant : availableMoves) {
-//                        TreeNode nodeVariant = NodePool.cloneNode(lossAvoidingSimulationNode);
-//                        nodeVariant.makeMove(moveVariant);
-//                        maxReward = Math.max(maxReward, calcReward(sourceNode.getSceneSnapshot(),
-//                                nodeVariant.getSceneSnapshot()));
-                    futureRewards.add(threadPool.submit(() -> {
+                    futureRewards.add(ThreadPool.threadPool.submit(() -> {
                         TreeNode nodeVariant = NodePool.allocateNode(-1, null,
                                 lossAvoidingSimulationNode.getSceneSnapshot().clone());
                         nodeVariant.makeMove(moveVariant);
@@ -228,11 +231,6 @@ public class MCTree {
 //                        + PATH_LENGTH_WEIGHT * (maxTreeDepth - currentDepth) / maxTreeDepth
                         - DAMAGE_WEIGHT * damage;
 
-//        System.out.println(reward);
-//        if (reward < 0) {
-//            System.out.println("Warning: reward is less than zero, reward = " + reward);
-//        }
-
         return reward;
     }
 
@@ -252,5 +250,6 @@ public class MCTree {
         LOSS_AVOIDANCE,
         TREE_REUSE,
         HARD_PRUNING,
+        SAFETY_PREPRUNING,
     }
 }

@@ -2,7 +2,7 @@ package agents.bogdanMCTS.NodeInternals;
 
 import agents.bogdanMCTS.Enchancements.MixMax;
 import agents.bogdanMCTS.MCTree;
-import agents.bogdanMCTS.RNG;
+import agents.bogdanMCTS.Workers.RNG;
 import agents.bogdanMCTS.Utils;
 import engine.core.MarioForwardModel;
 import engine.helper.GameStatus;
@@ -106,8 +106,9 @@ public class TreeNode {
 
     public TreeNode expandAll() {
         // Expand node to all possible actions
-        for (int i = 0; i < Utils.availableActions.length; ++i) {
-            children.add(NodePool.allocateNode(i, this, null));
+        var freeIds = getFreeIds();
+        for (var newId : freeIds) {
+            children.add(NodePool.allocateNode(newId, this, null));
         }
 
         // Return random node among expands
@@ -115,6 +116,14 @@ public class TreeNode {
     }
 
     public TreeNode expandOne() {
+        var freeIds = getFreeIds();
+        int newId = freeIds.get(RNG.nextInt(freeIds.size()));
+        TreeNode child = NodePool.allocateNode(newId, this, null);
+        children.add(child);
+        return child;
+    }
+
+    private List<Integer> getFreeIds() {
         Set<Integer> ids = new HashSet<>();
         for (TreeNode treeNode : children) {
             ids.add(treeNode.data.actionId);
@@ -125,10 +134,8 @@ public class TreeNode {
                 freeIds.add(i);
             }
         }
-        int newId = freeIds.get(RNG.nextInt(freeIds.size()));
-        TreeNode child = NodePool.allocateNode(newId, this, null);
-        children.add(child);
-        return child;
+
+        return freeIds;
     }
 
     public void simulatePos() {
@@ -140,10 +147,6 @@ public class TreeNode {
                 if (Utils.availableActions.length > data.actionId) {
                     data.sceneSnapshot.advance(Utils.availableActions[data.actionId]);
                 }
-            }
-
-            if (isLost()) {
-                prune();
             }
         }
     }

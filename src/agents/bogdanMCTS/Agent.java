@@ -1,6 +1,7 @@
 package agents.bogdanMCTS;
 
 import agents.bogdanMCTS.MCTree.Enhancement;
+import agents.bogdanMCTS.Workers.RNG;
 import engine.core.MarioAgent;
 import engine.core.MarioForwardModel;
 import engine.core.MarioTimer;
@@ -27,6 +28,7 @@ public class Agent implements MarioAgent {
         enhancements.add(Enhancement.TREE_REUSE);
         enhancements.add(Enhancement.LOSS_AVOIDANCE);
         enhancements.add(Enhancement.HARD_PRUNING);
+        enhancements.add(Enhancement.SAFETY_PREPRUNING);
         RNG.createRNG();
         tree = new MCTree(model, 1, enhancements);
     }

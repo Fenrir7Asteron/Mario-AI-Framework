@@ -1,4 +1,4 @@
-package agents.bogdanMCTS;
+package agents.bogdanMCTS.Workers;
 
 import java.util.Random;
 

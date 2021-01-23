@@ -15,7 +15,7 @@ public class PlayLevel {
     private static final int DISTANCE_MULTIPLIER = 16;
     private static final int TIME_FOR_LEVEL = 40;
     private static final int MARIO_START_MODE = 0;
-    private static final String LEVEL_DIR = "./levels/original/";
+    private static final String LEVEL_DIR = "./levels/thesisTestLevels/";
     private static final int PLAY_REPETITION_COUNT = 500;
     private static final Boolean VISUALIZATION = true;
 
@@ -141,6 +141,6 @@ public class PlayLevel {
 
         playAllFolderLevels(agents, LEVEL_DIR);
 
-//        playSingleLevel(agents, "./levels/thesisTestLevels/lvl-killer_plant.txt", PLAY_REPETITION_COUNT);
+//        playSingleLevel(agents, "./levels/lvl-killer_plant.txt", PLAY_REPETITION_COUNT);
     }
 }
