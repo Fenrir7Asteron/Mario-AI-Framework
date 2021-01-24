@@ -2,14 +2,14 @@ package agents.bogdanMCTS.NodeInternals;
 
 import agents.bogdanMCTS.Enchancements.MixMax;
 import agents.bogdanMCTS.MCTree;
-import agents.bogdanMCTS.Workers.RNG;
+import utils.RNG;
 import agents.bogdanMCTS.Utils;
 import engine.core.MarioForwardModel;
 import engine.helper.GameStatus;
 
 import java.util.*;
 
-public class TreeNode {
+public class TreeNode implements Cloneable {
     TreeNodeData data;
     TreeNode parent;
     ArrayList<TreeNode> children;
@@ -121,6 +121,21 @@ public class TreeNode {
         TreeNode child = NodePool.allocateNode(newId, this, null);
         children.add(child);
         return child;
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        TreeNode cloned = (TreeNode) super.clone();
+        if (cloned.data != null) {
+            cloned.data = (TreeNodeData) cloned.data.clone();
+        }
+        if (cloned.parent != null) {
+            cloned.parent = (TreeNode) cloned.parent.clone();
+        }
+        if (cloned.children != null) {
+            cloned.children = (ArrayList<TreeNode>) cloned.children.clone();
+        }
+        return cloned;
     }
 
     private List<Integer> getFreeIds() {

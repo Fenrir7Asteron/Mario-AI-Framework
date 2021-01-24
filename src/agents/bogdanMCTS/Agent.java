@@ -1,17 +1,20 @@
 package agents.bogdanMCTS;
 
 import agents.bogdanMCTS.MCTree.Enhancement;
-import agents.bogdanMCTS.Workers.RNG;
+import utils.RNG;
 import engine.core.MarioAgent;
 import engine.core.MarioForwardModel;
 import engine.core.MarioTimer;
+import utils.Score;
 
 import java.util.*;
+
+import static utils.MyMath.average;
 
 /**
  * @author BogdanFedotov
  */
-public class Agent implements MarioAgent {
+public class Agent implements MarioAgent, Cloneable {
     public enum Hyperparameter {
         MAX_DEPTH,
         EXPLORATION_FACTOR,
@@ -19,6 +22,8 @@ public class Agent implements MarioAgent {
     }
 
     private MCTree tree = null;
+    private ArrayList<Double> resultScores = new ArrayList<>();
+    private ArrayList<Double> resultTimes = new ArrayList<>();
 
     @Override
     public void initialize(MarioForwardModel model, MarioTimer timer) {
@@ -44,6 +49,28 @@ public class Agent implements MarioAgent {
     @Override
     public String getAgentName() {
         return "MyMCTSAgent";
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        Agent cloned = (Agent) super.clone();
+        if (cloned.tree != null) {
+            cloned.tree = (MCTree) cloned.tree.clone();
+        }
+        return cloned;
+    }
+
+    public void addResult(Score newScore) {
+        resultScores.add(newScore.score);
+        resultTimes.add(newScore.time);
+    }
+
+    public double averageScore() {
+        return average(resultScores);
+    }
+
+    public double averageTime() {
+        return average(resultTimes);
     }
 
 //    @Override

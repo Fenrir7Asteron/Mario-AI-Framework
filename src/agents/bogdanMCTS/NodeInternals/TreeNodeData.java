@@ -5,7 +5,7 @@ import engine.core.MarioForwardModel;
 import java.util.ArrayList;
 import java.util.Random;
 
-class TreeNodeData {
+class TreeNodeData implements Cloneable {
     MarioForwardModel sceneSnapshot = null;
 
     double maxReward;
@@ -41,5 +41,14 @@ class TreeNodeData {
         this.visitCount = 0;
         this.depth = 0;
         this.isPruned = false;
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        TreeNodeData cloned = (TreeNodeData) super.clone();
+        if (cloned.sceneSnapshot != null) {
+            cloned.sceneSnapshot = cloned.sceneSnapshot.clone();
+        }
+        return cloned;
     }
 }

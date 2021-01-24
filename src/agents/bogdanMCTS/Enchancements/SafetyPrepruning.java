@@ -1,13 +1,11 @@
 package agents.bogdanMCTS.Enchancements;
 
 import agents.bogdanMCTS.NodeInternals.TreeNode;
-import agents.bogdanMCTS.Workers.ThreadPool;
+import utils.ThreadPool;
 
-import java.beans.IntrospectionException;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 public class SafetyPrepruning {
     public static void safetyPreprune(TreeNode root) {
@@ -16,7 +14,7 @@ public class SafetyPrepruning {
         ArrayList<Future<?>> futures = new ArrayList<>();
 
         for (var child : root.getChildren()) {
-            futures.add(ThreadPool.threadPool.submit(() -> {
+            futures.add(ThreadPool.nodeCalculationsThreadPool.submit(() -> {
                 child.simulatePos();
                 if (child.isLost()) {
                     child.prune();

@@ -1,22 +1,19 @@
 package agents.bogdanMCTS;
 
 import agents.bogdanMCTS.Enchancements.HardPruning;
-import agents.bogdanMCTS.Enchancements.MixMax;
 import agents.bogdanMCTS.Enchancements.SafetyPrepruning;
 import agents.bogdanMCTS.NodeInternals.NodePool;
 import agents.bogdanMCTS.NodeInternals.TreeNode;
-import agents.bogdanMCTS.Workers.ThreadPool;
+import utils.ThreadPool;
 import engine.core.MarioForwardModel;
 import engine.core.MarioTimer;
 import engine.helper.GameStatus;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-public class MCTree {
+public class MCTree implements Cloneable {
 
     public static final double PROGRESS_WEIGHT = 0.5;
     public static final double DAMAGE_WEIGHT = 0.5;
@@ -90,6 +87,15 @@ public class MCTree {
             maxTreeDepth = root.getMaxSubTreeDepth();
         }
         return Utils.availableActions[bestActionId];
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        MCTree cloned = (MCTree) super.clone();
+        if (cloned.root != null) {
+            cloned.root = (TreeNode) cloned.root.clone();
+        }
+        return cloned;
     }
 
     private void clearTree() {
@@ -185,7 +191,7 @@ public class MCTree {
                 ArrayList<Future<Double>> futureRewards = new ArrayList<>();
 
                 for (var moveVariant : availableMoves) {
-                    futureRewards.add(ThreadPool.threadPool.submit(() -> {
+                    futureRewards.add(ThreadPool.nodeCalculationsThreadPool.submit(() -> {
                         TreeNode nodeVariant = NodePool.allocateNode(-1, null,
                                 lossAvoidingSimulationNode.getSceneSnapshot().clone());
                         nodeVariant.makeMove(moveVariant);
