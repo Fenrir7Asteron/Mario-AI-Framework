@@ -1,6 +1,7 @@
 package com.mycompany.app;
 
 import com.mycompany.app.engine.core.*;
+import com.mycompany.app.utils.RNG;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -10,13 +11,12 @@ import java.nio.file.Paths;
 public class GenerateLevel {
     private static final int GENERATED_LEVEL_WIDTH = 150;
     private static final int GENERATED_LEVEL_HEIGHT = 16;
-    private static final int LEVEL_COUNT = 100;
-    private static final String LEVEL_DIR = "./levels/thesisTestLevels/";
-    private static final Boolean VISUALIZATION = true;
-
-    private static final int NUMBER_REPEATITIONS = 20;
+    private static final int LEVEL_COUNT = 10000;
+    private static final String LEVEL_DIR = "./levels/thesisTestLevels10000/";
+    private static final int REPETITION_COUNT = 20;
     private static final int TIME_FOR_LEVEL = 10;
     private static final int DISTANCE_MULTIPLIER = 16;
+    public static final int RANDOM_SEED = 12345;
 
     public static void printResults(MarioResult result) {
         System.out.println("****************************************************************");
@@ -40,8 +40,9 @@ public class GenerateLevel {
         MarioGame game = new MarioGame();
         MarioResult result;
 
-        for (int i = 0; i < NUMBER_REPEATITIONS; ++i) {
-            MarioAgent agent = new com.mycompany.app.agents.random.Agent(i);
+        for (int i = 0; i < REPETITION_COUNT; ++i) {
+            RNG.setSeed(RANDOM_SEED);
+            MarioAgent agent = new com.mycompany.app.agents.random.Agent();
 
             result = game.runGame(agent, levelName, TIME_FOR_LEVEL, 0, false);
             double score = result.getCompletionPercentage() * GENERATED_LEVEL_WIDTH * DISTANCE_MULTIPLIER;
@@ -63,6 +64,7 @@ public class GenerateLevel {
             try {
                 MarioLevelGenerator generator = new com.mycompany.app.levelGenerators.sampler.LevelGenerator();
                 String level = generator.getGeneratedLevel(new MarioLevelModel(GENERATED_LEVEL_WIDTH, GENERATED_LEVEL_HEIGHT), new MarioTimer(5 * 60 * 60 * 1000));
+                testDeterminism(level);
                 Path dir = Paths.get(LEVEL_DIR);
                 if (!Files.exists(dir)) {
                     Files.createDirectory(dir);
@@ -79,6 +81,11 @@ public class GenerateLevel {
     }
 
     public static void main(String[] args) throws IOException {
+        var time = System.currentTimeMillis();
+
         generateManyLevels();
+
+        System.out.println("--------------------------------------------------------------------");
+        System.out.println("Execution time: " + (System.currentTimeMillis() - time));
     }
 }

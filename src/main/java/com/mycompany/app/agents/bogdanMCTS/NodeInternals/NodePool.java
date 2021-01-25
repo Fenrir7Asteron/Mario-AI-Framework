@@ -5,7 +5,7 @@ import com.mycompany.app.engine.core.MarioForwardModel;
 import java.util.Stack;
 
 public class NodePool {
-    public static final int MAX_POOL_SIZE = 500;
+    public static final int MAX_POOL_SIZE = 2000;
 
     private static Stack<TreeNode> nodePool;
 

@@ -37,7 +37,6 @@ public class Agent implements MarioAgent, Cloneable {
         enhancements.add(Enhancement.LOSS_AVOIDANCE);
         enhancements.add(Enhancement.HARD_PRUNING);
         enhancements.add(Enhancement.SAFETY_PREPRUNING);
-        RNG.createRNG();
         tree = new MCTree(model, 1, enhancements);
     }
 
@@ -45,7 +44,10 @@ public class Agent implements MarioAgent, Cloneable {
     public boolean[] getActions(MarioForwardModel model, MarioTimer timer) {
         tree.updateModel(model);
         boolean[] action = tree.search(timer);
-//        System.out.println(tree.depth);
+//        for (var a : action) {
+//            System.out.print(a + " ");
+//        }
+//        System.out.println();
         return action;
     }
 
@@ -76,8 +78,8 @@ public class Agent implements MarioAgent, Cloneable {
         return average(resultTimes);
     }
 
-    public void outputScores() {
-        try(FileOutputStream fos = new FileOutputStream(getAgentName() + "_scores.txt"))
+    public void outputScores(int levelCount) {
+        try(FileOutputStream fos = new FileOutputStream(getAgentName() + levelCount + "_scores.txt"))
         {
             for (var score : resultScores) {
                 byte[] buffer = (score.toString() + "\n").getBytes();

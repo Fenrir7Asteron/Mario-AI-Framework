@@ -6,14 +6,10 @@ import java.util.Random;
 import com.mycompany.app.engine.core.MarioAgent;
 import com.mycompany.app.engine.core.MarioForwardModel;
 import com.mycompany.app.engine.core.MarioTimer;
+import com.mycompany.app.utils.RNG;
 
 public class Agent implements MarioAgent {
-    private Random rnd;
     private ArrayList<boolean[]> choices;
-
-    public Agent(int randomSeed) {
-        rnd = new Random(randomSeed);
-    }
 
     @Override
     public void initialize(MarioForwardModel model, MarioTimer timer) {
@@ -58,7 +54,7 @@ public class Agent implements MarioAgent {
 
     @Override
     public boolean[] getActions(MarioForwardModel model, MarioTimer timer) {
-        return choices.get(rnd.nextInt(choices.size()));
+        return choices.get(RNG.nextInt(choices.size()));
     }
 
     @Override

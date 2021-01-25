@@ -4,6 +4,7 @@ import com.mycompany.app.agents.bogdanMCTS.Enchancements.HardPruning;
 import com.mycompany.app.agents.bogdanMCTS.Enchancements.SafetyPrepruning;
 import com.mycompany.app.agents.bogdanMCTS.NodeInternals.NodePool;
 import com.mycompany.app.agents.bogdanMCTS.NodeInternals.TreeNode;
+import com.mycompany.app.utils.RNG;
 import com.mycompany.app.utils.ThreadPool;
 import com.mycompany.app.engine.core.MarioForwardModel;
 import com.mycompany.app.engine.core.MarioTimer;
@@ -21,8 +22,10 @@ public class MCTree implements Cloneable {
     public static final float MAX_REWARD = 1.0f;
     public static final float MIN_REWARD = 0.0f;
 
-    static int MAX_SIMULATION_DEPTH = 6;
-    static double EXPLORATION_FACTOR = 0.188f;
+    public final static int MAX_SIMULATION_DEPTH = 6;
+    public final static double EXPLORATION_FACTOR = 0.188f;
+    public final static boolean DETERMINISTIC = false;
+    public final static int SEARCH_REPETITIONS = 100;
     static int repetitions = 1;
     static Set<Enhancement> enhancements;
 
@@ -32,7 +35,6 @@ public class MCTree implements Cloneable {
     MCTree(MarioForwardModel model, int repetitions, Set<Enhancement> enhancements) {
         MCTree.repetitions = repetitions;
         MCTree.enhancements = enhancements;
-        NodePool.createPool();
         initializeRoot(model);
         maxTreeDepth = 0;
     }
@@ -69,12 +71,22 @@ public class MCTree implements Cloneable {
             SafetyPrepruning.safetyPreprune(root);
         }
 
-        while (timer.getRemainingTime() > 0) {
-            ++count;
-            TreeNode nodeSelected = selectAndExpand();
-            double reward = simulate(nodeSelected);
-            backpropagate(nodeSelected, reward);
+        if (DETERMINISTIC) {
+            while (count < SEARCH_REPETITIONS) {
+                ++count;
+                TreeNode nodeSelected = selectAndExpand();
+                double reward = simulate(nodeSelected);
+                backpropagate(nodeSelected, reward);
+            }
+        } else {
+            while (timer.getRemainingTime() > 0) {
+                ++count;
+                TreeNode nodeSelected = selectAndExpand();
+                double reward = simulate(nodeSelected);
+                backpropagate(nodeSelected, reward);
+            }
         }
+
         TreeNode bestNode = root.getBestChild(false);
         int bestActionId = bestNode.getActionId();
         if (!MCTree.enhancements.contains(Enhancement.TREE_REUSE)) {

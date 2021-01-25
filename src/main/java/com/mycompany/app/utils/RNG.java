@@ -3,17 +3,15 @@ package com.mycompany.app.utils;
 import java.util.Random;
 
 public class RNG {
-    private static Random random;
+    private static final Random random = new Random(System.currentTimeMillis());
 
-    public static void createRNG() {
-        random = new Random();
-    }
-
-    public static void createRNG(int seed) {
-        random = new Random(seed);
+    public static void setSeed(long seed) {
+        random.setSeed(seed);
     }
 
     public static int nextInt(int upperBound) {
-        return random.nextInt(upperBound);
+        var res = random.nextInt(upperBound);
+//        System.out.println(res);
+        return res;
     }
 }

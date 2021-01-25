@@ -10,20 +10,23 @@ import java.util.concurrent.Future;
 
 import com.mycompany.app.agents.bogdanMCTS.Agent;
 import com.mycompany.app.agents.bogdanMCTS.MachineLearningModel;
+import com.mycompany.app.agents.bogdanMCTS.NodeInternals.NodePool;
 import com.mycompany.app.engine.core.*;
 import com.mycompany.app.utils.Score;
 import com.mycompany.app.utils.ThreadPool;
+import me.tongfei.progressbar.ProgressBar;
 
 public class PlayLevel {
     public static final int DISTANCE_MULTIPLIER = 16;
     public static final int TIME_FOR_LEVEL = 40;
     public static final int MARIO_START_MODE = 0;
-    public static final String LEVEL_DIR = "./levels/thesisTestLevels/";
+    public static final String LEVEL_DIR = "./levels/thesisTestLevels10000/";
     public static final int PLAY_REPETITION_COUNT = 100;
     public static final Boolean VISUALIZATION = false;
     public static final Boolean MULTITHREADED = true;
 
     private static ArrayList<Future<?>> futures = new ArrayList<>();
+    private static ProgressBar progressBar;
 
     public static void printResults(MarioResult result) {
         System.out.println("****************************************************************");
@@ -89,15 +92,19 @@ public class PlayLevel {
             Agent finalThreadAgent = threadAgent;
             futures.add(ThreadPool.parallelGamesThreadPool.submit(() -> {
                 var result = game.runGame(finalThreadAgent, getLevel(levelName), TIME_FOR_LEVEL, MARIO_START_MODE, VISUALIZATION);
-                var score = result.getCompletionPercentage() * levelWidth * DISTANCE_MULTIPLIER;
+//                var score = result.getCompletionPercentage() * levelWidth * DISTANCE_MULTIPLIER;
+                var score = result.getCompletionPercentage();
                 var time = (double) result.getRemainingTime() / 1000;
                 agent.addResult(new Score(score, time));
+                progressBar.step();
             }));
         } else {
             var result = game.runGame(agent, getLevel(levelName), TIME_FOR_LEVEL, MARIO_START_MODE, VISUALIZATION);
-            var score = result.getCompletionPercentage() * levelWidth * DISTANCE_MULTIPLIER;
+//            var score = result.getCompletionPercentage() * levelWidth * DISTANCE_MULTIPLIER;
+            var score = result.getCompletionPercentage();
             var time = (double) result.getRemainingTime() / 1000;
             agent.addResult(new Score(score, time));
+            progressBar.step();
         }
     }
 
@@ -111,6 +118,8 @@ public class PlayLevel {
     }
 
     private static void playListOfLevels(List<Agent> agents, List<String> levels) {
+        progressBar = new ProgressBar("Levels", levels.size());
+
         for (var levelPath : levels) {
             for (var agent : agents) {
                 playLevel(agent, levelPath);
@@ -132,6 +141,8 @@ public class PlayLevel {
     }
 
     private static void playSingleLevel(List<Agent> agents, final String levelPath, final int playRepetitionCount) {
+        progressBar = new ProgressBar("Repetitions", playRepetitionCount);
+
         for (int i = 0; i < playRepetitionCount; ++i) {
             for (var agent : agents) {
                 playLevel(agent, levelPath);
@@ -155,15 +166,19 @@ public class PlayLevel {
 
         tuneModels(agents); // Grid search hyperparameters
 
+        NodePool.createPool();
+
         playAllFolderLevels(agents, LEVEL_DIR);
 
 //        playSingleLevel(agents, "./levels/lvl-killer_plant.txt", PLAY_REPETITION_COUNT);
 
-        for (var future : futures) {
-            try {
-                future.get();
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
+        if (MULTITHREADED) {
+            for (var future : futures) {
+                try {
+                    future.get();
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                }
             }
         }
 
@@ -173,7 +188,7 @@ public class PlayLevel {
         System.out.println("Execution time: " + (System.currentTimeMillis() - time));
 
         for (var agent : agents) {
-            agent.outputScores();
+            agent.outputScores(10000);
         }
     }
 }
