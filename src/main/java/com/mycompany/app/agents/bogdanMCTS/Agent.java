@@ -78,7 +78,7 @@ public class Agent implements MarioAgent, Cloneable {
         return average(resultTimes);
     }
 
-    public void outputScores(int levelCount) {
+    public void outputScores(long levelCount) {
         try(FileOutputStream fos = new FileOutputStream(getAgentName() + levelCount + "_scores.txt"))
         {
             for (var score : resultScores) {

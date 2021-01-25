@@ -188,7 +188,7 @@ public class PlayLevel {
         System.out.println("Execution time: " + (System.currentTimeMillis() - time));
 
         for (var agent : agents) {
-            agent.outputScores(10000);
+            agent.outputScores(progressBar.getMax());
         }
     }
 }
