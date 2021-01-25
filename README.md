@@ -10,7 +10,7 @@
 
 The Mario AI framework is a framework for using AI methods with a version of Super Mario Bros.
 
-This is an updated version for the Mario AI Framework. As the first version was released in 2009, this is the tenth anniversary edition, integrating features from all previous versions and adding several new features. This new code includes a better interface for playing the game with planning algorithms (the planning track of the competition), generating levels (the level generation track), and possibly will support the learning track in the future . The framework comes with multiple different planning agents, level generators and thousands of levels including generated levels from diffeent generators as well as the original Mario levels. Also, the framework is compatible with [Video Game Level Corpus (VGLC)](https://github.com/TheVGLC/TheVGLC) processed notations.
+This is an updated version for the Mario AI Framework. As the first version was released in 2009, this is the tenth anniversary edition, integrating features from all previous versions and adding several new features. This new code includes a better interface for playing the game with planning algorithms (the planning track of the competition), generating levels (the level generation track), and possibly will support the learning track in the future . The framework comes with multiple different planning com.mycompany.app.agents, level generators and thousands of levels including generated levels from diffeent generators as well as the original Mario levels. Also, the framework is compatible with [Video Game Level Corpus (VGLC)](https://github.com/TheVGLC/TheVGLC) processed notations.
 
 If you want to access the old framework, feel free to check out the old websites for the previous competitions ([2015](https://sites.google.com/site/platformersai/platformer-ai-competition) - [2012](https://sites.google.com/site/noormario/home?pli=1) - [2011](https://sites.google.com/a/marioai.com/www/home) - [2009](http://julian.togelius.com/mariocompetition2009/)).
 
@@ -20,7 +20,7 @@ If you want to access the old framework, feel free to check out the old websites
 - Better Interface for the framework
 - Faster framework
 - Using the original mario art
-- Eleven different playing agents
+- Eleven different playing com.mycompany.app.agents
 - Agents now have a forward model, no more hacks for that
 - Observation grids can be centered around mario or can reflect the current screen.
 - Helper classes to check the observation grid instead of comparing integers
@@ -35,22 +35,22 @@ If you want to access the old framework, feel free to check out the old websites
 
 ------
 #### Planning Track
-Download the repo and run the [`PlayLevel.java`](https://github.com/amidos2006/Mario-AI-Framework/blob/master/src/PlayLevel.java) file. It will run [`robinBaumgarten`](https://github.com/amidos2006/Mario-AI-Framework/tree/master/src/agents/robinBaumgarten) A* agent on the [first Mario level](https://github.com/amidos2006/Mario-AI-Framework/blob/master/levels/original/lvl-1.txt) from the original Super Mario Bros. The game will run for 20 seconds (in-game time) and with Mario starting as small Mario and visuals appearing. To change the agent just change the package name of the agent in the following code
+Download the repo and run the [`com.mycompany.app.PlayLevel.java`](https://github.com/amidos2006/Mario-AI-Framework/blob/master/src/PlayLevel.java) file. It will run [`robinBaumgarten`](https://github.com/amidos2006/Mario-AI-Framework/tree/master/src/agents/robinBaumgarten) A* agent on the [first Mario level](https://github.com/amidos2006/Mario-AI-Framework/blob/master/levels/original/lvl-1.txt) from the original Super Mario Bros. The game will run for 20 seconds (in-game time) and with Mario starting as small Mario and visuals appearing. To change the agent just change the package name of the agent in the following code
 ```
-printResults(game.runGame(new agents.robinBaumgarten.Agent(), getLevel("levels/original/lvl-1.txt"), 20, 0, true));
+printResults(game.runGame(new com.mycompany.app.agents.robinBaumgarten.Agent(), getLevel("levels/original/lvl-1.txt"), 20, 0, true));
 ```
-to any of the package names that are found in [`src/agents/`](https://github.com/amidos2006/Mario-AI-Framework/tree/master/src/agents) folder, feel free to use any in your work. If you want to play a level yourself uncomment the following code in [`PlayLevel.java`](https://github.com/amidos2006/Mario-AI-Framework/blob/master/src/PlayLevel.java) file
+to any of the package names that are found in [`src/com.mycompany.app.agents/`](https://github.com/amidos2006/Mario-AI-Framework/tree/master/src/agents) folder, feel free to use any in your work. If you want to play a level yourself uncomment the following code in [`com.mycompany.app.PlayLevel.java`](https://github.com/amidos2006/Mario-AI-Framework/blob/master/src/PlayLevel.java) file
 ```
 //printResults(game.playGame(getLevel("levels/original/lvl-1.txt"), 200, 0));
 ```
 and comment the agent running line from before. This code will run the framework to play the [first mario level](https://github.com/amidos2006/Mario-AI-Framework/blob/master/levels/original/lvl-1.txt) of the original Super Mario Bros with 200 tick on the game clock and with Mario starting as small mario. Feel free to change the `0` to `1` to start as Large Mario or `2` to start as Fire Mario.
 
 #### Level Generation Track
-Download the repo and run the [`GenerateLevel.java`](https://github.com/amidos2006/Mario-AI-Framework/blob/master/src/GenerateLevel.java) from the [`src/`](https://github.com/amidos2006/Mario-AI-Framework/tree/master/src) folder to test the framework. It will run the `notch` generator to generate a level then it will run [`robinBaumgarten`](https://github.com/amidos2006/Mario-AI-Framework/tree/master/src/agents/robinBaumgarten) A* agent to play that generated level. Feel free to try another generators by changing the package name of generator in the following line
+Download the repo and run the [`com.mycompany.app.GenerateLevel.java`](https://github.com/amidos2006/Mario-AI-Framework/blob/master/src/GenerateLevel.java) from the [`src/`](https://github.com/amidos2006/Mario-AI-Framework/tree/master/src) folder to test the framework. It will run the `notch` generator to generate a level then it will run [`robinBaumgarten`](https://github.com/amidos2006/Mario-AI-Framework/tree/master/src/agents/robinBaumgarten) A* agent to play that generated level. Feel free to try another generators by changing the package name of generator in the following line
 ```
-MarioLevelGenerator generator = new levelGenerators.notch.LevelGenerator();
+MarioLevelGenerator generator = new com.mycompany.app.levelGenerators.notch.LevelGenerator();
 ```
-to any of the other package names of the other generator that can be found in in [`src/levelGenerators/`](https://github.com/amidos2006/Mario-AI-Framework/tree/master/src/levelGenerators) folder, feel free to use any in your work. The generators runs for maximum time of 5 hours to generate a level of 150x16 tiles using the following line:
+to any of the other package names of the other generator that can be found in in [`src/com.mycompany.app.levelGenerators/`](https://github.com/amidos2006/Mario-AI-Framework/tree/master/src/levelGenerators) folder, feel free to use any in your work. The generators runs for maximum time of 5 hours to generate a level of 150x16 tiles using the following line:
 ```
 String level = generator.getGeneratedLevel(new MarioLevelModel(150, 16), new MarioTimer(5*60*60*1000));
 ```
@@ -94,10 +94,10 @@ We are aware that this list is not complete. If you want your paper added, pleas
 <h3 id="missing">Missing Features</h3>
 
 ------
-- ~~The MarioAI framework core engine~~
+- ~~The MarioAI framework core com.mycompany.app.engine~~
 - ~~Implementing a forward model and multiple different observations (based around mario/based around the screen center)~~
 - ~~Implementing the original SMB graphics instead of Mario world graphics~~
-- ~~Adding multiple agents from the previous competition~~
+- ~~Adding multiple com.mycompany.app.agents from the previous competition~~
 - ~~Isolating particle effects from game sprites~~
 - ~~Only using the first SMB action set (no more shell carrying/wall jumping)~~
 - ~~Documenting the interface~~
@@ -110,7 +110,7 @@ We are aware that this list is not complete. If you want your paper added, pleas
 - ~~Adding Punishing Model to the Engine where the player dies when certain basic event fires~~
 - Allow the punishing model to tackle more complex events that need to be infered
 - Allow Agent debugging by drawing the searched trajectories like the Robin A* video
-- Adapt more agents to the new Mario-Framework
+- Adapt more com.mycompany.app.agents to the new Mario-Framework
 - Adapt more level generator to the new Mario-Framework
 - Add more stats to MarioResult class similar to Gameplay Metrics
 - Mix the TileType and TileFeature class
@@ -118,7 +118,7 @@ We are aware that this list is not complete. If you want your paper added, pleas
 - Koopa shells can come back to life after stomping on it
 - Adding Monte Mario agent
 - Multiple different backgrounds/palettes that the user can select from.
-- Documenting the whole engine
+- Documenting the whole com.mycompany.app.engine
 - Mimicking the original SMB physics instead of SMW physics
 - Adding the learning track interface
 

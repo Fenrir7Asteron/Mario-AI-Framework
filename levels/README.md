@@ -8,8 +8,8 @@ Generated Levels: http://sokath.com/fdg2014_pcg_evaluation/
 VGLC: https://github.com/TheVGLC/TheVGLC
 
 Symbol Reference:
-- 'M': Mario Starting Position, not having it will force the engine to start at x = 0 and the first ground floor.
-- 'F': Mario finish line, not having it will force the engine to end at x = levelWidth and the first ground floor.
+- 'M': Mario Starting Position, not having it will force the com.mycompany.app.engine to start at x = 0 and the first ground floor.
+- 'F': Mario finish line, not having it will force the com.mycompany.app.engine to end at x = levelWidth and the first ground floor.
 - 'y': Spiky
 - 'Y': Winged Spiky
 - 'E' or 'g': Goomba
