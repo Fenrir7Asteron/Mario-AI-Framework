@@ -20,7 +20,7 @@ public class PlayLevel {
     public static final int DISTANCE_MULTIPLIER = 16;
     public static final int TIME_FOR_LEVEL = 40;
     public static final int MARIO_START_MODE = 0;
-    public static final String LEVEL_DIR = "./levels/thesisTestLevels10000/";
+    public static final String LEVEL_DIR = "./levels/thesisTestLevels100/";
     public static final int PLAY_REPETITION_COUNT = 100;
     public static final Boolean VISUALIZATION = false;
     public static final Boolean MULTITHREADED = true;

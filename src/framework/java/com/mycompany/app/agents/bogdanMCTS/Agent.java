@@ -1,13 +1,11 @@
 package com.mycompany.app.agents.bogdanMCTS;
 
 import com.mycompany.app.agents.bogdanMCTS.MCTree.Enhancement;
-import com.mycompany.app.utils.RNG;
 import com.mycompany.app.engine.core.MarioAgent;
 import com.mycompany.app.engine.core.MarioForwardModel;
 import com.mycompany.app.engine.core.MarioTimer;
 import com.mycompany.app.utils.Score;
 
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.*;
@@ -24,6 +22,8 @@ public class Agent implements MarioAgent, Cloneable {
         MIXMAX_MAX_FACTOR,
     }
 
+    public static final String DATA_FOLDER = "data/";
+
     private MCTree tree = null;
     private ArrayList<Double> resultScores = new ArrayList<>();
     private ArrayList<Double> resultTimes = new ArrayList<>();
@@ -31,12 +31,12 @@ public class Agent implements MarioAgent, Cloneable {
     @Override
     public void initialize(MarioForwardModel model, MarioTimer timer) {
         HashSet<Enhancement> enhancements = new HashSet<>();
-        enhancements.add(Enhancement.MIXMAX);
+//        enhancements.add(Enhancement.MIXMAX);
 //        enhancements.add(Enhancement.PARTIAL_EXPANSION);
-        enhancements.add(Enhancement.TREE_REUSE);
-        enhancements.add(Enhancement.LOSS_AVOIDANCE);
-        enhancements.add(Enhancement.HARD_PRUNING);
-        enhancements.add(Enhancement.SAFETY_PREPRUNING);
+//        enhancements.add(Enhancement.TREE_REUSE);
+//        enhancements.add(Enhancement.LOSS_AVOIDANCE);
+//        enhancements.add(Enhancement.HARD_PRUNING);
+//        enhancements.add(Enhancement.SAFETY_PREPRUNING);
         tree = new MCTree(model, 1, enhancements);
     }
 
@@ -79,7 +79,9 @@ public class Agent implements MarioAgent, Cloneable {
     }
 
     public void outputScores(long levelCount) {
-        try(FileOutputStream fos = new FileOutputStream(getAgentName() + levelCount + "_scores.txt"))
+        var namePrefix = getAgentName() + levelCount + enhancementsToString();
+
+        try(FileOutputStream fos = new FileOutputStream(DATA_FOLDER + namePrefix + ".txt"))
         {
             for (var score : resultScores) {
                 byte[] buffer = (score.toString() + "\n").getBytes();
@@ -92,7 +94,38 @@ public class Agent implements MarioAgent, Cloneable {
         }
 
         System.out.println("--------------------------------------------------------------------");
-        System.out.println("Agent [" + getAgentName() + "]: The file has been written");
+        System.out.println("Agent [" + namePrefix + "]: The file has been written");
+    }
+
+    private String enhancementsToString() {
+        StringBuilder shortNames = new StringBuilder();
+
+        for (var enhancement : MCTree.enhancements) {
+            switch (enhancement) {
+                case MIXMAX:
+                    shortNames.append("+MM");
+                    break;
+                case TREE_REUSE:
+                    shortNames.append("+TR");
+                    break;
+                case HARD_PRUNING:
+                    shortNames.append("+HP");
+                    break;
+                case LOSS_AVOIDANCE:
+                    shortNames.append("+LA");
+                    break;
+                case PARTIAL_EXPANSION:
+                    shortNames.append("+PA");
+                    break;
+                case SAFETY_PREPRUNING:
+                    shortNames.append("+SP");
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        return shortNames.toString();
     }
 
 //    @Override
