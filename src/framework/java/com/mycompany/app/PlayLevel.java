@@ -9,8 +9,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import com.mycompany.app.agents.bogdanMCTS.Agent;
-import com.mycompany.app.agents.bogdanMCTS.MachineLearningModel;
-import com.mycompany.app.agents.bogdanMCTS.NodeInternals.NodePool;
+import com.mycompany.app.agents.bogdanMCTS.NodeInternals.NodeBuilder;
 import com.mycompany.app.engine.core.*;
 import com.mycompany.app.utils.Score;
 import com.mycompany.app.utils.ThreadPool;
@@ -18,10 +17,10 @@ import me.tongfei.progressbar.ProgressBar;
 
 public class PlayLevel {
     public static final int DISTANCE_MULTIPLIER = 16;
-    public static final int TIME_FOR_LEVEL = 40;
+    public static final int TIME_FOR_LEVEL = 30;
     public static final int MARIO_START_MODE = 0;
-    public static final String LEVEL_DIR = "./levels/thesisTestLevels100/";
-    public static final int PLAY_REPETITION_COUNT = 100;
+    public static final String LEVEL_DIR = "./levels/original/";
+    public static final int PLAY_REPETITION_COUNT = 300;
     public static final Boolean VISUALIZATION = false;
     public static final Boolean MULTITHREADED = true;
 
@@ -108,15 +107,6 @@ public class PlayLevel {
         }
     }
 
-    private static void tuneModels(List<Agent> agents) {
-        for (var agent : agents) {
-            if (!(agent instanceof MachineLearningModel)) {
-                continue;
-            }
-            // Do something
-        }
-    }
-
     private static void playListOfLevels(List<Agent> agents, List<String> levels) {
         progressBar = new ProgressBar("Levels", levels.size());
 
@@ -145,6 +135,7 @@ public class PlayLevel {
 
         for (int i = 0; i < playRepetitionCount; ++i) {
             for (var agent : agents) {
+//                NodePool.createPool();
                 playLevel(agent, levelPath);
             }
         }
@@ -164,13 +155,10 @@ public class PlayLevel {
         List<Agent> agents = new ArrayList<>();
         agents.add(new com.mycompany.app.agents.bogdanMCTS.Agent());
 
-        tuneModels(agents); // Grid search hyperparameters
-
-        NodePool.createPool();
-
-        playAllFolderLevels(agents, LEVEL_DIR);
+//        playAllFolderLevels(agents, LEVEL_DIR);
 
 //        playSingleLevel(agents, "./levels/lvl-killer_plant.txt", PLAY_REPETITION_COUNT);
+        playSingleLevel(agents, "./levels/original/lvl-5.txt", PLAY_REPETITION_COUNT);
 
         if (MULTITHREADED) {
             for (var future : futures) {
@@ -190,5 +178,7 @@ public class PlayLevel {
         for (var agent : agents) {
             agent.outputScores(progressBar.getMax());
         }
+
+        System.exit(0);
     }
 }

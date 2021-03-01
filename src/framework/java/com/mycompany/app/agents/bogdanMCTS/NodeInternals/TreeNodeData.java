@@ -40,6 +40,19 @@ class TreeNodeData implements Cloneable {
         this.isPruned = false;
     }
 
+    public void clear() {
+        this.actionId = -1;
+        this.sceneSnapshot = null;
+        this.maxReward = 0;
+        this.maxConfidence = 0;
+        this.totalReward = 0;
+        this.averageReward = 0;
+        this.snapshotVersion = 0;
+        this.visitCount = 0;
+        this.depth = 0;
+        this.isPruned = false;
+    }
+
     @Override
     protected Object clone() throws CloneNotSupportedException {
         TreeNodeData cloned = (TreeNodeData) super.clone();

@@ -2,9 +2,8 @@ package com.mycompany.app.agents.bogdanMCTS;
 
 import com.mycompany.app.agents.bogdanMCTS.Enchancements.HardPruning;
 import com.mycompany.app.agents.bogdanMCTS.Enchancements.SafetyPrepruning;
-import com.mycompany.app.agents.bogdanMCTS.NodeInternals.NodePool;
+import com.mycompany.app.agents.bogdanMCTS.NodeInternals.NodeBuilder;
 import com.mycompany.app.agents.bogdanMCTS.NodeInternals.TreeNode;
-import com.mycompany.app.utils.RNG;
 import com.mycompany.app.utils.ThreadPool;
 import com.mycompany.app.engine.core.MarioForwardModel;
 import com.mycompany.app.engine.core.MarioTimer;
@@ -56,7 +55,7 @@ public class MCTree implements Cloneable {
     }
 
     public void initializeRoot(MarioForwardModel model) {
-        root = NodePool.allocateNode(-1, null, model.clone());
+        root = NodeBuilder.allocateNode(-1, null, model.clone());
         if (!enhancements.contains(Enhancement.PARTIAL_EXPANSION)) {
             root.expandAll();
         } else {
@@ -172,7 +171,7 @@ public class MCTree implements Cloneable {
 
         var sourceSnapshot = sourceNode.getSceneSnapshot();
 
-        TreeNode simulationNode = NodePool.allocateNode(-1, null, sourceSnapshot.clone());
+        TreeNode simulationNode = NodeBuilder.allocateNode(-1, null, sourceSnapshot.clone());
 
         int step = 0;
         ArrayList<boolean[]> moveHistory = new ArrayList<>();
@@ -191,7 +190,7 @@ public class MCTree implements Cloneable {
         if (simulationNode.isLost()) {
             if (enhancements.contains(Enhancement.LOSS_AVOIDANCE)) {
                 // Create another simulation node and advance it until one move before the loss.
-                TreeNode lossAvoidingSimulationNode = NodePool.allocateNode(-1, null,
+                TreeNode lossAvoidingSimulationNode = NodeBuilder.allocateNode(-1, null,
                         sourceSnapshot.clone());
                 lossAvoidingSimulationNode.makeMoves(moveHistory);
 
@@ -204,7 +203,7 @@ public class MCTree implements Cloneable {
 
                 for (var moveVariant : availableMoves) {
                     futureRewards.add(ThreadPool.nodeCalculationsThreadPool.submit(() -> {
-                        TreeNode nodeVariant = NodePool.allocateNode(-1, null,
+                        TreeNode nodeVariant = NodeBuilder.allocateNode(-1, null,
                                 lossAvoidingSimulationNode.getSceneSnapshot().clone());
                         nodeVariant.makeMove(moveVariant);
                         return calcReward(sourceSnapshot, nodeVariant.getSceneSnapshot(), sourceNode.getDepth());

@@ -108,7 +108,7 @@ public class TreeNode implements Cloneable {
         // Expand node to all possible actions
         var freeIds = getFreeIds();
         for (var newId : freeIds) {
-            children.add(NodePool.allocateNode(newId, this, null));
+            children.add(NodeBuilder.allocateNode(newId, this, null));
         }
 
         // Return random node among expands
@@ -118,7 +118,7 @@ public class TreeNode implements Cloneable {
     public TreeNode expandOne() {
         var freeIds = getFreeIds();
         int newId = freeIds.get(RNG.nextInt(freeIds.size()));
-        TreeNode child = NodePool.allocateNode(newId, this, null);
+        TreeNode child = NodeBuilder.allocateNode(newId, this, null);
         children.add(child);
         return child;
     }
@@ -277,7 +277,7 @@ public class TreeNode implements Cloneable {
         for (TreeNode child : children) {
             child.clearSubTree();
         }
-        NodePool.deallocateNode(this);
+        NodeBuilder.deallocateNode(this);
     }
 
     public void detachFromTree() {
