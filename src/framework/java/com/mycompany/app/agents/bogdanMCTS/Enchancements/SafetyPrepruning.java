@@ -11,22 +11,9 @@ public class SafetyPrepruning {
     public static void safetyPreprune(TreeNode root) {
         root.expandAll();
 
-        ArrayList<Future<?>> futures = new ArrayList<>();
-
         for (var child : root.getChildren()) {
-            futures.add(ThreadPool.nodeCalculationsThreadPool.submit(() -> {
-                child.simulatePos();
-                if (child.isLost()) {
-                    child.prune();
-                }
-            }));
-        }
-
-        for (var future : futures) {
-            try {
-                future.get();
-            } catch (InterruptedException | ExecutionException ex) {
-                ex.printStackTrace();
+            if (child.isLost()) {
+                child.prune();
             }
         }
     }

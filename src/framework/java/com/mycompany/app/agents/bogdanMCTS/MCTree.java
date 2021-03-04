@@ -1,17 +1,14 @@
 package com.mycompany.app.agents.bogdanMCTS;
 
 import com.mycompany.app.agents.bogdanMCTS.Enchancements.HardPruning;
+import com.mycompany.app.agents.bogdanMCTS.Enchancements.LossAvoidance;
 import com.mycompany.app.agents.bogdanMCTS.Enchancements.SafetyPrepruning;
 import com.mycompany.app.agents.bogdanMCTS.NodeInternals.NodeBuilder;
 import com.mycompany.app.agents.bogdanMCTS.NodeInternals.TreeNode;
-import com.mycompany.app.utils.ThreadPool;
 import com.mycompany.app.engine.core.MarioForwardModel;
 import com.mycompany.app.engine.core.MarioTimer;
-import com.mycompany.app.engine.helper.GameStatus;
 
 import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 public class MCTree implements Cloneable {
 
@@ -28,14 +25,15 @@ public class MCTree implements Cloneable {
     static int repetitions = 1;
     static Set<Enhancement> enhancements;
 
-    private TreeNode root = null;
-    private int maxTreeDepth;
+    private TreeNode _root = null;
+    private int _maxTreeDepth;
+    private boolean _needExpand = false;
 
     MCTree(MarioForwardModel model, int repetitions, Set<Enhancement> enhancements) {
         MCTree.repetitions = repetitions;
         MCTree.enhancements = enhancements;
         initializeRoot(model);
-        maxTreeDepth = 0;
+        _maxTreeDepth = 0;
     }
 
     public static double getExplorationFactor() {
@@ -55,11 +53,11 @@ public class MCTree implements Cloneable {
     }
 
     public void initializeRoot(MarioForwardModel model) {
-        root = NodeBuilder.allocateNode(-1, null, model.clone());
+        _root = NodeBuilder.allocateNode(-1, null, model.clone());
         if (!enhancements.contains(Enhancement.PARTIAL_EXPANSION)) {
-            root.expandAll();
+            _root.expandAll();
         } else {
-            root.expandOne();
+            _root.expandOne();
         }
     }
 
@@ -67,26 +65,30 @@ public class MCTree implements Cloneable {
         int count = 0;
 
         if (MCTree.enhancements.contains(Enhancement.SAFETY_PREPRUNING)) {
-            SafetyPrepruning.safetyPreprune(root);
+            SafetyPrepruning.safetyPreprune(_root);
         }
 
         if (DETERMINISTIC) {
             while (count < SEARCH_REPETITIONS) {
                 ++count;
-                TreeNode nodeSelected = selectAndExpand();
+                TreeNode nodeSelected = select();
                 double reward = simulate(nodeSelected);
                 backpropagate(nodeSelected, reward);
             }
         } else {
             while (timer.getRemainingTime() > 0) {
                 ++count;
-                TreeNode nodeSelected = selectAndExpand();
-                double reward = simulate(nodeSelected);
-                backpropagate(nodeSelected, reward);
+
+                TreeNode node = select();
+                if (_needExpand) {
+                    node = expand(node);
+                }
+                double reward = simulate(node);
+                backpropagate(node, reward);
             }
         }
 
-        TreeNode bestNode = root.getBestChild(false);
+        TreeNode bestNode = _root.getBestChild(false);
         int bestActionId = bestNode.getActionId();
         if (!MCTree.enhancements.contains(Enhancement.TREE_REUSE)) {
             clearTree();
@@ -94,8 +96,8 @@ public class MCTree implements Cloneable {
             // By detaching the best node from tree it and it's subtree are not cleared.
             bestNode.detachFromTree();
             clearTree();
-            root = bestNode;
-            maxTreeDepth = root.getMaxSubTreeDepth();
+            _root = bestNode;
+            _maxTreeDepth = _root.getMaxSubTreeDepth();
         }
         return Utils.availableActions[bestActionId];
     }
@@ -103,44 +105,59 @@ public class MCTree implements Cloneable {
     @Override
     protected Object clone() throws CloneNotSupportedException {
         MCTree cloned = (MCTree) super.clone();
-        if (cloned.root != null) {
-            cloned.root = (TreeNode) cloned.root.clone();
+        if (cloned._root != null) {
+            cloned._root = (TreeNode) cloned._root.clone();
         }
         return cloned;
     }
 
     private void clearTree() {
-        root.clearSubTree();
-        root = null;
+        _root.clearSubTree();
+        _root = null;
     }
 
 
     boolean checkTreeRoot() {
-        return root != null;
+        return _root != null;
     }
 
     void updateModel(MarioForwardModel model) {
         if (!checkTreeRoot()) {
             initializeRoot(model);
         } else {
-            root.setSceneSnapshot(model);
+            _root.setSceneSnapshot(model);
         }
     }
 
-    private TreeNode expandIfNeeded(TreeNode node) {
+    private boolean isExpandNeeded(TreeNode node) {
         if (node.getVisitCount() > 0 && node.getChildrenSize() < Utils.availableActions.length) {
-            if (enhancements.contains(Enhancement.PARTIAL_EXPANSION) && node.getChildrenSize() == 0) {
-                node = node.expandOne();
-            } else if (!enhancements.contains(Enhancement.PARTIAL_EXPANSION)) {
-                node = node.expandAll();
+            if (enhancements.contains(Enhancement.PARTIAL_EXPANSION)) {
+                // If we can expand partially, then do it only if there are no expanded children yet.
+                return node.getChildrenSize() == 0;
+            } else {
+                return true;
             }
-            maxTreeDepth = Math.max(maxTreeDepth, node.getDepth());
         }
-        return node;
+        return false;
     }
 
-    private TreeNode selectAndExpand() {
-        TreeNode current = root;
+    private TreeNode expand(TreeNode node) {
+        TreeNode newNode;
+
+        if (enhancements.contains(Enhancement.PARTIAL_EXPANSION)) {
+            newNode = node.expandOne();
+        } else {
+            newNode = node.expandAll();
+        }
+
+        _maxTreeDepth = Math.max(_maxTreeDepth, newNode.getDepth());
+        _needExpand = false;
+
+        return newNode;
+    }
+
+    private TreeNode select() {
+        TreeNode current = _root;
         while (!current.isLeaf()) {
             if (current.getParent() != null && current.getSnapshotVersion() != current.getParent().getSnapshotVersion()) {
                 current.poolSnapshotFromParent();
@@ -151,19 +168,19 @@ public class MCTree implements Cloneable {
             if (n > 0 && enhancements.contains(Enhancement.PARTIAL_EXPANSION) && current.getChildrenSize() < Utils.availableActions.length) {
                 double unexploredConf = 0.5 + EXPLORATION_FACTOR * Math.sqrt(2 * Math.log(n) / (1 + expands));
                 if (expands == 0 || unexploredConf > current.getMaxConfidence()) {
-                    return current.expandOne();
+                    _needExpand = true;
+                    return current;
                 }
             }
 
             current = next;
         }
 
-        return expandIfNeeded(current);
+        _needExpand = isExpandNeeded(current);
+        return current;
     }
 
     private double simulate(TreeNode sourceNode) {
-        sourceNode.simulatePos();
-
         if (sourceNode.isLost()) {
             sourceNode.prune();
             return MIN_REWARD;
@@ -189,36 +206,8 @@ public class MCTree implements Cloneable {
 
         if (simulationNode.isLost()) {
             if (enhancements.contains(Enhancement.LOSS_AVOIDANCE)) {
-                // Create another simulation node and advance it until one move before the loss.
-                TreeNode lossAvoidingSimulationNode = NodeBuilder.allocateNode(-1, null,
-                        sourceSnapshot.clone());
-                lossAvoidingSimulationNode.makeMoves(moveHistory);
-
-                List<boolean[]> availableMoves = lossAvoidingSimulationNode.getAllMoves();
-                double maxReward = MIN_REWARD;
-
-                // Try all available moves and return the best result.
-                // During the Loss Avoidance max simulation depth is ignored for the optimization purposes.
-                ArrayList<Future<Double>> futureRewards = new ArrayList<>();
-
-                for (var moveVariant : availableMoves) {
-                    futureRewards.add(ThreadPool.nodeCalculationsThreadPool.submit(() -> {
-                        TreeNode nodeVariant = NodeBuilder.allocateNode(-1, null,
-                                lossAvoidingSimulationNode.getSceneSnapshot().clone());
-                        nodeVariant.makeMove(moveVariant);
-                        return calcReward(sourceSnapshot, nodeVariant.getSceneSnapshot(), sourceNode.getDepth());
-                    }));
-                }
-
-                for (var futureReward : futureRewards) {
-                    try {
-                        maxReward = Math.max(maxReward, futureReward.get());
-                    } catch (InterruptedException | ExecutionException ex) {
-                        ex.printStackTrace();
-                    }
-                }
-
-                return maxReward;
+                // Try find a sibling simulation node with minimal loss.
+                return LossAvoidance.AvoidLoss(moveHistory, sourceNode);
             } else {
                 return MIN_REWARD;
             }
@@ -229,26 +218,7 @@ public class MCTree implements Cloneable {
         }
 
         // Return reward at the end of a simulation.
-        return calcReward(sourceSnapshot, simulationNode.getSceneSnapshot(), sourceNode.getDepth());
-    }
-
-    private double calcReward(MarioForwardModel startSnapshot, MarioForwardModel endSnapshot, int currentDepth) {
-        if (endSnapshot.getGameStatus() != GameStatus.RUNNING) {
-            // If it is Game Over, there is either win or lose.
-            return endSnapshot.getGameStatus() == GameStatus.WIN ? MAX_REWARD : MIN_REWARD;
-        }
-
-        double startX = startSnapshot.getMarioFloatPos()[0];
-        double endX = endSnapshot.getMarioFloatPos()[0];
-        int damage = Math.max(0, startSnapshot.getMarioMode() - endSnapshot.getMarioMode()) +
-                Math.max(0, startSnapshot.getNumLives() - endSnapshot.getNumLives());
-
-        double reward = 0.5 +
-                PROGRESS_WEIGHT * (endX - startX) / (11.0 * (1 + MAX_SIMULATION_DEPTH))
-//                        + PATH_LENGTH_WEIGHT * (maxTreeDepth - currentDepth) / maxTreeDepth
-                        - DAMAGE_WEIGHT * damage;
-
-        return reward;
+        return Utils.calcReward(sourceSnapshot, simulationNode.getSceneSnapshot(), sourceNode.getDepth());
     }
 
     private void backpropagate(TreeNode currentNode, double reward) {

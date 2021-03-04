@@ -1,19 +1,9 @@
 package com.mycompany.app.agents.bogdanMCTS;
 
+import com.mycompany.app.engine.core.MarioForwardModel;
+import com.mycompany.app.engine.helper.GameStatus;
+
 public class Utils {
-
-//    static MarioActions[][] availableActions = new MarioActions[][] {
-//        new MarioActions[]{MarioActions.RIGHT},
-//        new MarioActions[]{MarioActions.RIGHT, MarioActions.SPEED},
-//        new MarioActions[]{MarioActions.RIGHT, MarioActions.JUMP},
-//        new MarioActions[]{MarioActions.RIGHT, MarioActions.JUMP, MarioActions.SPEED},
-//        new MarioActions[]{MarioActions.RIGHT, MarioActions.JUMP, MarioActions.SPEED},
-//        new MarioActions[]{MarioActions.LEFT},
-//        new MarioActions[]{MarioActions.LEFT, MarioActions.SPEED},
-//        new MarioActions[]{MarioActions.LEFT, MarioActions.JUMP},
-//        new MarioActions[]{MarioActions.LEFT, MarioActions.JUMP, MarioActions.SPEED},
-//    };
-
     // Left, Right, Down, Speed, Jump
     public static boolean[][] availableActions = new boolean[][]{
             new boolean[]{false, true, false, false, false},
@@ -26,14 +16,22 @@ public class Utils {
             new boolean[]{true, false, false, true, true},
     };
 
-//    public static boolean[] getAction(int ind) {
-//        if (ind < 0 || ind > availableActions.length) {
-//            return null;
-//        }
-//        boolean[] action = new boolean[MarioActions.numberOfActions()];
-//        for (MarioActions button : availableActions[ind]) {
-//            action[button.getValue()] = true;
-//        }
-//        return action;
-//    }
+    public static double calcReward(MarioForwardModel startSnapshot, MarioForwardModel endSnapshot, int currentDepth) {
+        if (endSnapshot.getGameStatus() != GameStatus.RUNNING) {
+            // If it is Game Over, there is either win or lose.
+            return endSnapshot.getGameStatus() == GameStatus.WIN ? MCTree.MAX_REWARD : MCTree.MIN_REWARD;
+        }
+
+        double startX = startSnapshot.getMarioFloatPos()[0];
+        double endX = endSnapshot.getMarioFloatPos()[0];
+        int damage = Math.max(0, startSnapshot.getMarioMode() - endSnapshot.getMarioMode()) +
+                Math.max(0, startSnapshot.getNumLives() - endSnapshot.getNumLives());
+
+        double reward = 0.5 +
+                MCTree.PROGRESS_WEIGHT * (endX - startX) / (11.0 * (1 + MCTree.MAX_SIMULATION_DEPTH))
+//                        + PATH_LENGTH_WEIGHT * (maxTreeDepth - currentDepth) / maxTreeDepth
+                        - MCTree.DAMAGE_WEIGHT * damage;
+
+        return reward;
+    }
 }
