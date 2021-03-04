@@ -37,6 +37,7 @@ public class Agent implements MarioAgent, Cloneable {
         enhancements.add(Enhancement.LOSS_AVOIDANCE);
         enhancements.add(Enhancement.HARD_PRUNING);
         enhancements.add(Enhancement.SAFETY_PREPRUNING);
+        enhancements.add(Enhancement.WU_UCT);
         tree = new MCTree(model, 1, enhancements);
     }
 

@@ -3,6 +3,7 @@ package com.mycompany.app.agents.bogdanMCTS;
 import com.mycompany.app.agents.bogdanMCTS.Enchancements.HardPruning;
 import com.mycompany.app.agents.bogdanMCTS.Enchancements.LossAvoidance;
 import com.mycompany.app.agents.bogdanMCTS.Enchancements.SafetyPrepruning;
+import com.mycompany.app.agents.bogdanMCTS.Enchancements.WU_UCT;
 import com.mycompany.app.agents.bogdanMCTS.NodeInternals.NodeBuilder;
 import com.mycompany.app.agents.bogdanMCTS.NodeInternals.TreeNode;
 import com.mycompany.app.engine.core.MarioForwardModel;
@@ -26,14 +27,12 @@ public class MCTree implements Cloneable {
     static Set<Enhancement> enhancements;
 
     private TreeNode _root = null;
-    private int _maxTreeDepth;
-    private boolean _needExpand = false;
+    private static boolean _needExpand = false;
 
     MCTree(MarioForwardModel model, int repetitions, Set<Enhancement> enhancements) {
         MCTree.repetitions = repetitions;
         MCTree.enhancements = enhancements;
         initializeRoot(model);
-        _maxTreeDepth = 0;
     }
 
     public static double getExplorationFactor() {
@@ -62,29 +61,28 @@ public class MCTree implements Cloneable {
     }
 
     public boolean[] search(MarioTimer timer) {
-        int count = 0;
-
         if (MCTree.enhancements.contains(Enhancement.SAFETY_PREPRUNING)) {
             SafetyPrepruning.safetyPreprune(_root);
         }
 
         if (DETERMINISTIC) {
+            int count = 0;
+
             while (count < SEARCH_REPETITIONS) {
+                if (enhancements.contains(Enhancement.WU_UCT)) {
+                    WU_UCT.makeOneSearchStep(_root);
+                } else {
+                    makeOneSearchStep(_root);
+                }
                 ++count;
-                TreeNode nodeSelected = select();
-                double reward = simulate(nodeSelected);
-                backpropagate(nodeSelected, reward);
             }
         } else {
             while (timer.getRemainingTime() > 0) {
-                ++count;
-
-                TreeNode node = select();
-                if (_needExpand) {
-                    node = expand(node);
+                if (enhancements.contains(Enhancement.WU_UCT)) {
+                    WU_UCT.makeOneSearchStep(_root);
+                } else {
+                    makeOneSearchStep(_root);
                 }
-                double reward = simulate(node);
-                backpropagate(node, reward);
             }
         }
 
@@ -97,7 +95,6 @@ public class MCTree implements Cloneable {
             bestNode.detachFromTree();
             clearTree();
             _root = bestNode;
-            _maxTreeDepth = _root.getMaxSubTreeDepth();
         }
         return Utils.availableActions[bestActionId];
     }
@@ -129,7 +126,16 @@ public class MCTree implements Cloneable {
         }
     }
 
-    private boolean isExpandNeeded(TreeNode node) {
+    private void makeOneSearchStep(TreeNode root) {
+        TreeNode node = select(root);
+        if (needExpand()) {
+            node = expand(node);
+        }
+        double reward = simulate(node);
+        backpropagate(node, reward);
+    }
+
+    private static boolean isExpandNeededForSelection(TreeNode node) {
         if (node.getVisitCount() > 0 && node.getChildrenSize() < Utils.availableActions.length) {
             if (enhancements.contains(Enhancement.PARTIAL_EXPANSION)) {
                 // If we can expand partially, then do it only if there are no expanded children yet.
@@ -141,7 +147,11 @@ public class MCTree implements Cloneable {
         return false;
     }
 
-    private TreeNode expand(TreeNode node) {
+    public static boolean needExpand() {
+        return _needExpand;
+    }
+
+    public static TreeNode expand(TreeNode node) {
         TreeNode newNode;
 
         if (enhancements.contains(Enhancement.PARTIAL_EXPANSION)) {
@@ -150,14 +160,13 @@ public class MCTree implements Cloneable {
             newNode = node.expandAll();
         }
 
-        _maxTreeDepth = Math.max(_maxTreeDepth, newNode.getDepth());
         _needExpand = false;
 
         return newNode;
     }
 
-    private TreeNode select() {
-        TreeNode current = _root;
+    public static TreeNode select(TreeNode root) {
+        TreeNode current = root;
         while (!current.isLeaf()) {
             if (current.getParent() != null && current.getSnapshotVersion() != current.getParent().getSnapshotVersion()) {
                 current.poolSnapshotFromParent();
@@ -176,11 +185,11 @@ public class MCTree implements Cloneable {
             current = next;
         }
 
-        _needExpand = isExpandNeeded(current);
+        _needExpand = isExpandNeededForSelection(current);
         return current;
     }
 
-    private double simulate(TreeNode sourceNode) {
+    public static double simulate(TreeNode sourceNode) {
         if (sourceNode.isLost()) {
             sourceNode.prune();
             return MIN_REWARD;
@@ -221,7 +230,7 @@ public class MCTree implements Cloneable {
         return Utils.calcReward(sourceSnapshot, simulationNode.getSceneSnapshot(), sourceNode.getDepth());
     }
 
-    private void backpropagate(TreeNode currentNode, double reward) {
+    public static void backpropagate(TreeNode currentNode, double reward) {
         while (currentNode != null) {
             currentNode.updateReward(reward);
             if (MCTree.getEnhancements().contains(Enhancement.HARD_PRUNING)) {
@@ -238,5 +247,6 @@ public class MCTree implements Cloneable {
         TREE_REUSE,
         HARD_PRUNING,
         SAFETY_PREPRUNING,
+        WU_UCT,
     }
 }
