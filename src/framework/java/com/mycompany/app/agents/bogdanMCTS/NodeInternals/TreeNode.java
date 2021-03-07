@@ -104,7 +104,11 @@ public class TreeNode implements Cloneable {
         data.snapshotVersion++;
     }
 
-    public TreeNode expandAll() {
+    public void incrementVisitCount() {
+        data.visitCount++;
+    }
+
+    public synchronized TreeNode expandAll() {
         // Expand node to all possible actions
         var freeIds = getFreeIds();
         for (var newId : freeIds) {
@@ -117,13 +121,19 @@ public class TreeNode implements Cloneable {
         return children.get(RNG.nextInt(children.size()));
     }
 
-    public TreeNode expandOne() {
+    public synchronized TreeNode expandOne() {
         var freeIds = getFreeIds();
-        int newId = freeIds.get(RNG.nextInt(freeIds.size()));
-        TreeNode child = NodeBuilder.allocateNode(newId, this, null);
-        child.simulatePos();
-        children.add(child);
-        return child;
+        if (freeIds.size() > 0) {
+            int newId = freeIds.get(RNG.nextInt(freeIds.size()));
+            TreeNode child = NodeBuilder.allocateNode(newId, this, null);
+            child.simulatePos();
+            children.add(child);
+            return child;
+        } else {
+
+            // Return random node among expands
+            return children.get(RNG.nextInt(children.size()));
+        }
     }
 
     @Override
@@ -186,10 +196,6 @@ public class TreeNode implements Cloneable {
         int n = parent.getChildrenSize();
         int nj = getChildrenSize();
 
-        if (nj == 0) {
-            return Double.POSITIVE_INFINITY;
-        }
-
         double exploitation;
         if (MCTree.getEnhancements().contains(MCTree.Enhancement.MIXMAX)) {
             exploitation = MixMax.getExploitation(data.averageReward, data.maxReward);
@@ -198,6 +204,10 @@ public class TreeNode implements Cloneable {
         }
         double exploration = 0.0f;
         if (explore) {
+            if (nj == 0) {
+                return Double.POSITIVE_INFINITY;
+            }
+
             exploration = MCTree.getExplorationFactor() * Math.sqrt(2 * Math.log(n) / nj);
         }
         return exploitation + exploration;
@@ -260,7 +270,10 @@ public class TreeNode implements Cloneable {
     }
 
     public void updateReward(double reward) {
-        ++data.visitCount;
+        if (!MCTree.getEnhancements().contains(MCTree.Enhancement.WU_UCT)) {
+            incrementVisitCount();
+        }
+
         data.totalReward += reward;
         data.maxReward = Math.max(data.maxReward, reward);
         data.averageReward = data.totalReward / data.visitCount;

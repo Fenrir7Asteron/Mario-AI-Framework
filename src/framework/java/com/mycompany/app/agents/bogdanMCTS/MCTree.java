@@ -1,9 +1,6 @@
 package com.mycompany.app.agents.bogdanMCTS;
 
-import com.mycompany.app.agents.bogdanMCTS.Enchancements.HardPruning;
-import com.mycompany.app.agents.bogdanMCTS.Enchancements.LossAvoidance;
-import com.mycompany.app.agents.bogdanMCTS.Enchancements.SafetyPrepruning;
-import com.mycompany.app.agents.bogdanMCTS.Enchancements.WU_UCT;
+import com.mycompany.app.agents.bogdanMCTS.Enchancements.*;
 import com.mycompany.app.agents.bogdanMCTS.NodeInternals.NodeBuilder;
 import com.mycompany.app.agents.bogdanMCTS.NodeInternals.TreeNode;
 import com.mycompany.app.engine.core.MarioForwardModel;
@@ -76,6 +73,8 @@ public class MCTree implements Cloneable {
                 }
                 ++count;
             }
+
+            WU_UCT.clear();
         } else {
             while (timer.getRemainingTime() > 0) {
                 if (enhancements.contains(Enhancement.WU_UCT)) {
@@ -108,12 +107,6 @@ public class MCTree implements Cloneable {
         return cloned;
     }
 
-    private void clearTree() {
-        _root.clearSubTree();
-        _root = null;
-    }
-
-
     boolean checkTreeRoot() {
         return _root != null;
     }
@@ -126,29 +119,17 @@ public class MCTree implements Cloneable {
         }
     }
 
-    private void makeOneSearchStep(TreeNode root) {
-        TreeNode node = select(root);
-        if (needExpand()) {
-            node = expand(node);
-        }
-        double reward = simulate(node);
-        backpropagate(node, reward);
-    }
-
-    private static boolean isExpandNeededForSelection(TreeNode node) {
-        if (node.getVisitCount() > 0 && node.getChildrenSize() < Utils.availableActions.length) {
+    public static boolean isExpandNeededForSelection(TreeNode node) {
+        if (node.getVisitCount() > 0
+                && node.getChildrenSize() < Utils.availableActions.length) {
             if (enhancements.contains(Enhancement.PARTIAL_EXPANSION)) {
-                // If we can expand partially, then do it only if there are no expanded children yet.
-                return node.getChildrenSize() == 0;
+                return PartialExpansion.isItPartialExpandTime(node);
             } else {
                 return true;
             }
         }
-        return false;
-    }
 
-    public static boolean needExpand() {
-        return _needExpand;
+        return false;
     }
 
     public static TreeNode expand(TreeNode node) {
@@ -172,12 +153,9 @@ public class MCTree implements Cloneable {
                 current.poolSnapshotFromParent();
             }
             TreeNode next = current.getBestChild(true);
-            int n = current.getVisitCount();
-            int expands = current.getChildrenSize();
-            if (n > 0 && enhancements.contains(Enhancement.PARTIAL_EXPANSION) && current.getChildrenSize() < Utils.availableActions.length) {
-                double unexploredConf = 0.5 + EXPLORATION_FACTOR * Math.sqrt(2 * Math.log(n) / (1 + expands));
-                if (expands == 0 || unexploredConf > current.getMaxConfidence()) {
-                    _needExpand = true;
+
+            if (enhancements.contains(Enhancement.PARTIAL_EXPANSION)) {
+                if (PartialExpansion.isItPartialExpandTime(current)) {
                     return current;
                 }
             }
@@ -248,5 +226,20 @@ public class MCTree implements Cloneable {
         HARD_PRUNING,
         SAFETY_PREPRUNING,
         WU_UCT,
+    }
+
+    private void clearTree() {
+        _root.clearSubTree();
+        _root = null;
+    }
+
+
+    private void makeOneSearchStep(TreeNode root) {
+        TreeNode node = select(root);
+        if (isExpandNeededForSelection(node)) {
+            node = expand(node);
+        }
+        double reward = simulate(node);
+        backpropagate(node, reward);
     }
 }
