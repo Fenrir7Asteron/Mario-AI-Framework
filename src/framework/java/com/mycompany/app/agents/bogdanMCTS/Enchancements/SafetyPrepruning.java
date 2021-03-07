@@ -1,6 +1,7 @@
 package com.mycompany.app.agents.bogdanMCTS.Enchancements;
 
 import com.mycompany.app.agents.bogdanMCTS.NodeInternals.TreeNode;
+import com.mycompany.app.engine.core.MarioForwardModel;
 import com.mycompany.app.utils.ThreadPool;
 
 import java.util.ArrayList;

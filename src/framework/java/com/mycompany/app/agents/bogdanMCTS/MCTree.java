@@ -24,7 +24,6 @@ public class MCTree implements Cloneable {
     static Set<Enhancement> enhancements;
 
     private TreeNode _root = null;
-    private static boolean _needExpand = false;
 
     MCTree(MarioForwardModel model, int repetitions, Set<Enhancement> enhancements) {
         MCTree.repetitions = repetitions;
@@ -50,6 +49,7 @@ public class MCTree implements Cloneable {
 
     public void initializeRoot(MarioForwardModel model) {
         _root = NodeBuilder.allocateNode(-1, null, model.clone());
+
         if (!enhancements.contains(Enhancement.PARTIAL_EXPANSION)) {
             _root.expandAll();
         } else {
@@ -73,8 +73,6 @@ public class MCTree implements Cloneable {
                 }
                 ++count;
             }
-
-            WU_UCT.clear();
         } else {
             while (timer.getRemainingTime() > 0) {
                 if (enhancements.contains(Enhancement.WU_UCT)) {
@@ -83,6 +81,10 @@ public class MCTree implements Cloneable {
                     makeOneSearchStep(_root);
                 }
             }
+        }
+
+        if (enhancements.contains(Enhancement.WU_UCT)) {
+            WU_UCT.clear();
         }
 
         TreeNode bestNode = _root.getBestChild(false);
@@ -132,7 +134,7 @@ public class MCTree implements Cloneable {
         return false;
     }
 
-    public static TreeNode expand(TreeNode node) {
+    public synchronized static TreeNode expand(TreeNode node) {
         TreeNode newNode;
 
         if (enhancements.contains(Enhancement.PARTIAL_EXPANSION)) {
@@ -141,17 +143,12 @@ public class MCTree implements Cloneable {
             newNode = node.expandAll();
         }
 
-        _needExpand = false;
-
         return newNode;
     }
 
     public static TreeNode select(TreeNode root) {
         TreeNode current = root;
         while (!current.isLeaf()) {
-            if (current.getParent() != null && current.getSnapshotVersion() != current.getParent().getSnapshotVersion()) {
-                current.poolSnapshotFromParent();
-            }
             TreeNode next = current.getBestChild(true);
 
             if (enhancements.contains(Enhancement.PARTIAL_EXPANSION)) {
@@ -163,7 +160,6 @@ public class MCTree implements Cloneable {
             current = next;
         }
 
-        _needExpand = isExpandNeededForSelection(current);
         return current;
     }
 

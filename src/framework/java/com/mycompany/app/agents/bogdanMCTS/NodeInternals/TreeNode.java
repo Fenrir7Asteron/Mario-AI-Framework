@@ -40,10 +40,6 @@ public class TreeNode implements Cloneable {
         return data.sceneSnapshot;
     }
 
-    public int getSnapshotVersion() {
-        return data.snapshotVersion;
-    }
-
     public TreeNode getParent() {
         return parent;
     }
@@ -95,13 +91,20 @@ public class TreeNode implements Cloneable {
         return best;
     }
 
+    public int getScheduledExpansions() {
+        return data.scheduledExpansions;
+    }
+
     public void setMaxConfidence(double maxConfidence) {
         data.maxConfidence = maxConfidence;
     }
 
     public void setSceneSnapshot(MarioForwardModel model) {
         data.sceneSnapshot = model.clone();
-        data.snapshotVersion++;
+    }
+
+    public void setScheduledExpansions(int value) {
+        data.scheduledExpansions = value;
     }
 
     public void incrementVisitCount() {
@@ -167,9 +170,8 @@ public class TreeNode implements Cloneable {
     }
 
     public void simulatePos() {
-        if (parent != null && (data.sceneSnapshot == null || getSnapshotVersion() < parent.getSnapshotVersion())) {
+        if (parent != null && data.sceneSnapshot == null) {
             data.sceneSnapshot = parent.getSceneSnapshot().clone();
-            data.snapshotVersion = parent.getSnapshotVersion();
 
             for (int i = 0; i < MCTree.getRepetitions(); i++) {
                 if (Utils.availableActions.length > data.actionId) {
@@ -290,7 +292,8 @@ public class TreeNode implements Cloneable {
     }
 
     public void clearSubTree() {
-        for (TreeNode child : children) {
+        for (int i = 0; i < children.size(); ++i) {
+            var child = children.get(i);
             child.clearSubTree();
         }
         NodeBuilder.deallocateNode(this);
@@ -314,7 +317,8 @@ public class TreeNode implements Cloneable {
 
     private void recalculateSubTreeDepth(int newDepth) {
         data.depth = newDepth;
-        for (var child : children) {
+        for (int i = 0; i < children.size(); ++i) {
+            var child = children.get(i);
             child.recalculateSubTreeDepth(newDepth + 1);
         }
     }

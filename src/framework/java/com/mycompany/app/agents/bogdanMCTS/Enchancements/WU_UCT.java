@@ -2,17 +2,19 @@ package com.mycompany.app.agents.bogdanMCTS.Enchancements;
 
 import com.mycompany.app.agents.bogdanMCTS.MCTree;
 import com.mycompany.app.agents.bogdanMCTS.NodeInternals.TreeNode;
+import com.mycompany.app.agents.bogdanMCTS.Utils;
 import com.mycompany.app.utils.RNG;
 import org.apache.commons.math3.util.Pair;
 
 import java.util.*;
 import java.util.concurrent.*;
 
+import static com.mycompany.app.agents.bogdanMCTS.MCTree.expand;
 import static com.mycompany.app.agents.bogdanMCTS.MCTree.select;
 
 public class WU_UCT {
-    private final static int MAX_EXPANSION_WORKERS = 12;
-    private final static int MAX_SIMULATION_WORKERS = 12;
+    private final static int MAX_EXPANSION_WORKERS = 16;
+    private final static int MAX_SIMULATION_WORKERS = 16;
 
     private static final ThreadPoolExecutor _expansionWorkers = (ThreadPoolExecutor) Executors.newFixedThreadPool(MAX_EXPANSION_WORKERS);
     private static final ThreadPoolExecutor _simulationWorkers = (ThreadPoolExecutor) Executors.newFixedThreadPool(MAX_SIMULATION_WORKERS);
@@ -27,7 +29,8 @@ public class WU_UCT {
     public static void makeOneSearchStep(TreeNode root) {
         TreeNode selectedNode = select(root);
 
-        if (MCTree.isExpandNeededForSelection(selectedNode)) {
+        if (MCTree.isExpandNeededForSelection(selectedNode)
+                && selectedNode.getScheduledExpansions() < Utils.availableActions.length) {
             _unscheduledExpansionTasks.add(_searchId);
             _expansionTaskRecorder.put(_searchId, selectedNode);
 
@@ -39,9 +42,14 @@ public class WU_UCT {
                         RNG.nextInt(_unscheduledExpansionTasks.size())
                 );
 
-                System.out.println(task);
-
                 var nodeToExpand = _expansionTaskRecorder.get(task);
+
+                if (MCTree.getEnhancements().contains(MCTree.Enhancement.PARTIAL_EXPANSION)) {
+                    int prevScheduledExpansionCount = nodeToExpand.getScheduledExpansions();
+                    nodeToExpand.setScheduledExpansions(prevScheduledExpansionCount + 1);
+                } else {
+                    nodeToExpand.setScheduledExpansions(Utils.availableActions.length);
+                }
 
 //                _expansionFutures[_expansionWorkersBusyCount++] = CompletableFuture.supplyAsync(
                 _expansionFutures.add(CompletableFuture.supplyAsync(
@@ -108,9 +116,19 @@ public class WU_UCT {
     }
 
     public static void clear() {
+        while (!_expansionFutures.isEmpty()) {
+            var future = _expansionFutures.removeFirst();
+            future.cancel(true);
+        }
+
+        while (!_simulationFutures.isEmpty()) {
+            var future = _simulationFutures.removeFirst();
+            future.cancel(true);
+        }
+
         try {
-            _expansionWorkers.awaitTermination(5, TimeUnit.MILLISECONDS);
-            _simulationWorkers.awaitTermination(5, TimeUnit.MILLISECONDS);
+            _expansionWorkers.awaitTermination(0, TimeUnit.MILLISECONDS);
+            _simulationWorkers.awaitTermination(0, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

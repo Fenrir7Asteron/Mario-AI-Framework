@@ -9,10 +9,10 @@ class TreeNodeData implements Cloneable {
     double maxConfidence;
     double totalReward;
     double averageReward;
-    int snapshotVersion;
     int visitCount;
     int depth;
     int actionId;
+    int scheduledExpansions;
     boolean isPruned;
 
     TreeNodeData(int actionId) {
@@ -21,10 +21,10 @@ class TreeNodeData implements Cloneable {
         this.maxConfidence = 0;
         this.totalReward = 0;
         this.averageReward = 0;
-        this.snapshotVersion = 0;
         this.visitCount = 0;
         this.depth = 0;
         this.isPruned = false;
+        this.scheduledExpansions = 0;
     }
 
     TreeNodeData(int actionId, MarioForwardModel sceneSnapshot) {
@@ -34,10 +34,10 @@ class TreeNodeData implements Cloneable {
         this.maxConfidence = 0;
         this.totalReward = 0;
         this.averageReward = 0;
-        this.snapshotVersion = 0;
         this.visitCount = 0;
         this.depth = 0;
         this.isPruned = false;
+        this.scheduledExpansions = 0;
     }
 
     public void clear() {
@@ -47,10 +47,10 @@ class TreeNodeData implements Cloneable {
         this.maxConfidence = 0;
         this.totalReward = 0;
         this.averageReward = 0;
-        this.snapshotVersion = 0;
         this.visitCount = 0;
         this.depth = 0;
         this.isPruned = false;
+        this.scheduledExpansions = 0;
     }
 
     @Override
