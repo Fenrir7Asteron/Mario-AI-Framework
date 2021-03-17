@@ -13,11 +13,11 @@ import static com.mycompany.app.agents.bogdanMCTS.MCTree.expand;
 import static com.mycompany.app.agents.bogdanMCTS.MCTree.select;
 
 public class WU_UCT {
-    private final static int MAX_EXPANSION_WORKERS = 16;
-    private final static int MAX_SIMULATION_WORKERS = 16;
+    private final static int MAX_EXPANSION_WORKERS = 8;
+    private final static int MAX_SIMULATION_WORKERS = 8;
 
-    private static final ThreadPoolExecutor _expansionWorkers = (ThreadPoolExecutor) Executors.newFixedThreadPool(MAX_EXPANSION_WORKERS);
-    private static final ThreadPoolExecutor _simulationWorkers = (ThreadPoolExecutor) Executors.newFixedThreadPool(MAX_SIMULATION_WORKERS);
+    private static ExecutorService _expansionWorkers = Executors.newFixedThreadPool(MAX_EXPANSION_WORKERS);
+    private static ExecutorService _simulationWorkers = Executors.newFixedThreadPool(MAX_SIMULATION_WORKERS);
     private static LinkedList<CompletableFuture> _expansionFutures = new LinkedList<>();
     private static LinkedList<CompletableFuture> _simulationFutures = new LinkedList<>();
     private static ArrayList<Integer> _unscheduledExpansionTasks = new ArrayList<>();
@@ -51,22 +51,18 @@ public class WU_UCT {
                     nodeToExpand.setScheduledExpansions(Utils.availableActions.length);
                 }
 
-//                _expansionFutures[_expansionWorkersBusyCount++] = CompletableFuture.supplyAsync(
-                _expansionFutures.add(CompletableFuture.supplyAsync(
-                        () -> MCTree.expand(nodeToExpand),
-                        _expansionWorkers
-                ));
+                try {
+                    _expansionFutures.add(CompletableFuture.supplyAsync(
+                            () -> MCTree.expand(nodeToExpand),
+                            _expansionWorkers
+                    ));
+                } catch (RejectedExecutionException ignored) {
+
+                }
             }
 
             if (_expansionFutures.size() == MAX_EXPANSION_WORKERS) {
-                var expansionFuture = _expansionFutures.removeFirst();
-                try {
-                    var nodeToSimulate = (TreeNode) expansionFuture.get();
-                    _unscheduledSimulationTasks.add(_searchId);
-                    _simulationTaskRecorder.put(_searchId, nodeToSimulate);
-                } catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
-                }
+                waitExpansionWorker();
             }
         } else {
             _unscheduledSimulationTasks.add(_searchId);
@@ -85,23 +81,18 @@ public class WU_UCT {
 
             incompleteUpdate(nodeToSimulate);
 
-//            _simulationFutures.add(CompletableFuture.supplyAsync(
-            _simulationFutures.add(CompletableFuture.supplyAsync(
-                    () -> new Pair(MCTree.simulate(nodeToSimulate), task),
-                    _simulationWorkers
-            ));
+            try {
+                _simulationFutures.add(CompletableFuture.supplyAsync(
+                        () -> new Pair(MCTree.simulate(nodeToSimulate), task),
+                        _simulationWorkers
+                ));
+            } catch (RejectedExecutionException ignored) {
+
+            }
         }
 
         if (_simulationFutures.size() == MAX_SIMULATION_WORKERS) {
-            var simulationFuture = _simulationFutures.removeFirst();
-
-            try {
-                Pair<Double, Integer> simulationResult = (Pair<Double, Integer>) simulationFuture.get();
-                var simulatedNode = _simulationTaskRecorder.get(simulationResult.getSecond());
-                MCTree.backpropagate(simulatedNode, simulationResult.getFirst());
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
+            waitSimulationWorker();
         }
 
         ++_searchId;
@@ -115,27 +106,56 @@ public class WU_UCT {
         }
     }
 
-    public static void clear() {
-        while (!_expansionFutures.isEmpty()) {
-            var future = _expansionFutures.removeFirst();
-            future.cancel(true);
-        }
-
-        while (!_simulationFutures.isEmpty()) {
-            var future = _simulationFutures.removeFirst();
-            future.cancel(true);
-        }
-
+    private static void waitExpansionWorker() {
+        var expansionFuture = _expansionFutures.removeFirst();
         try {
-            _expansionWorkers.awaitTermination(0, TimeUnit.MILLISECONDS);
-            _simulationWorkers.awaitTermination(0, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
+            var nodeToSimulate = (TreeNode) expansionFuture.get();
+            _unscheduledSimulationTasks.add(_searchId);
+            _simulationTaskRecorder.put(_searchId, nodeToSimulate);
+        } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
+    }
+
+    private static void waitSimulationWorker() {
+        var simulationFuture = _simulationFutures.removeFirst();
+
+        try {
+            Pair<Double, Integer> simulationResult = (Pair<Double, Integer>) simulationFuture.get();
+            var simulatedNode = _simulationTaskRecorder.get(simulationResult.getSecond());
+            MCTree.backpropagate(simulatedNode, simulationResult.getFirst());
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void clear() {
+        while (_expansionFutures.size() > 0) {
+            waitExpansionWorker();
+        }
+
+        while (_simulationFutures.size() > 0) {
+            waitSimulationWorker();
+        }
+
+//        try {
+//            _expansionWorkers.awaitTermination(1, TimeUnit.SECONDS);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//
+//        try {
+//            _simulationWorkers.awaitTermination(1, TimeUnit.SECONDS);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
 
         _expansionFutures.clear();
         _simulationFutures.clear();
         _unscheduledExpansionTasks.clear();
         _unscheduledSimulationTasks.clear();
+        _expansionTaskRecorder.clear();
+        _simulationTaskRecorder.clear();
+        _searchId = 0;
     }
 }

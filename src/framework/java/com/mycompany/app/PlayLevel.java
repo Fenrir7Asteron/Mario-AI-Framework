@@ -155,10 +155,10 @@ public class PlayLevel {
         List<Agent> agents = new ArrayList<>();
         agents.add(new com.mycompany.app.agents.bogdanMCTS.Agent());
 
-//        playAllFolderLevels(agents, LEVEL_DIR);
+        playAllFolderLevels(agents, LEVEL_DIR);
 
 //        playSingleLevel(agents, "./levels/lvl-killer_plant.txt", PLAY_REPETITION_COUNT);
-        playSingleLevel(agents, "./levels/original/lvl-5.txt", PLAY_REPETITION_COUNT);
+//        playSingleLevel(agents, "./levels/original/lvl-3.txt", PLAY_REPETITION_COUNT);
 
         if (MULTITHREADED) {
             for (var future : futures) {

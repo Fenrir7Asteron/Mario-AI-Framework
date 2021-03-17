@@ -16,7 +16,7 @@ public class MCTree implements Cloneable {
     public static final float MAX_REWARD = 1.0f;
     public static final float MIN_REWARD = 0.0f;
 
-    public final static int MAX_SIMULATION_DEPTH = 6;
+    public final static int MAX_SIMULATION_DEPTH = 15;
     public final static double EXPLORATION_FACTOR = 0.188f;
     public final static boolean DETERMINISTIC = false;
     public final static int SEARCH_REPETITIONS = 100;
@@ -88,13 +88,16 @@ public class MCTree implements Cloneable {
         }
 
         TreeNode bestNode = _root.getBestChild(false);
+//        System.out.println(_root.getMaxSubTreeDepth());
+//        System.out.println(_root.getVisitCount());
+//        System.out.println(bestNode.getVisitCount());
         int bestActionId = bestNode.getActionId();
         if (!MCTree.enhancements.contains(Enhancement.TREE_REUSE)) {
-            clearTree();
+            _root.clearSubTree();
         } else {
             // By detaching the best node from tree it and it's subtree are not cleared.
             bestNode.detachFromTree();
-            clearTree();
+            _root.clearSubTree();
             _root = bestNode;
         }
         return Utils.availableActions[bestActionId];
@@ -222,11 +225,6 @@ public class MCTree implements Cloneable {
         HARD_PRUNING,
         SAFETY_PREPRUNING,
         WU_UCT,
-    }
-
-    private void clearTree() {
-        _root.clearSubTree();
-        _root = null;
     }
 
 

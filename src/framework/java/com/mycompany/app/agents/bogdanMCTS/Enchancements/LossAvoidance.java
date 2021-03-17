@@ -25,23 +25,33 @@ public class LossAvoidance {
 
         // Try all available moves and return the best result.
         // During the Loss Avoidance max simulation depth is ignored for the optimization purposes.
-        ArrayList<Future<Double>> futureRewards = new ArrayList<>();
+//        ArrayList<Future<Double>> futureRewards = new ArrayList<>();
+//
+//        for (var moveVariant : availableMoves) {
+//            futureRewards.add(ThreadPool.nodeCalculationsThreadPool.submit(() -> {
+//                TreeNode nodeVariant = NodeBuilder.allocateNode(-1, null,
+//                        lossAvoidingSimulationNode.getSceneSnapshot().clone());
+//                nodeVariant.makeMove(moveVariant);
+//                return Utils.calcReward(sourceSnapshot, nodeVariant.getSceneSnapshot(), sourceNode.getDepth());
+//            }));
+//        }
+//
+//        for (var futureReward : futureRewards) {
+//            try {
+//
+//            } catch (InterruptedException | ExecutionException ex) {
+//                ex.printStackTrace();
+//            }
+//        }
 
         for (var moveVariant : availableMoves) {
-            futureRewards.add(ThreadPool.nodeCalculationsThreadPool.submit(() -> {
-                TreeNode nodeVariant = NodeBuilder.allocateNode(-1, null,
-                        lossAvoidingSimulationNode.getSceneSnapshot().clone());
-                nodeVariant.makeMove(moveVariant);
-                return Utils.calcReward(sourceSnapshot, nodeVariant.getSceneSnapshot(), sourceNode.getDepth());
-            }));
-        }
-
-        for (var futureReward : futureRewards) {
-            try {
-                maxReward = Math.max(maxReward, futureReward.get());
-            } catch (InterruptedException | ExecutionException ex) {
-                ex.printStackTrace();
-            }
+            TreeNode nodeVariant = NodeBuilder.allocateNode(-1, null,
+            lossAvoidingSimulationNode.getSceneSnapshot().clone());
+            nodeVariant.makeMove(moveVariant);
+            maxReward = Math.max(
+                    maxReward,
+                    Utils.calcReward(sourceSnapshot, nodeVariant.getSceneSnapshot(), sourceNode.getDepth())
+            );
         }
 
         return maxReward;

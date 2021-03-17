@@ -33,8 +33,8 @@ public class Agent implements MarioAgent, Cloneable {
         HashSet<Enhancement> enhancements = new HashSet<>();
         enhancements.add(Enhancement.MIXMAX);
 //        enhancements.add(Enhancement.PARTIAL_EXPANSION);
-//        enhancements.add(Enhancement.TREE_REUSE);
-        enhancements.add(Enhancement.LOSS_AVOIDANCE);
+        enhancements.add(Enhancement.TREE_REUSE);
+//        enhancements.add(Enhancement.LOSS_AVOIDANCE);
 //        enhancements.add(Enhancement.HARD_PRUNING);
         enhancements.add(Enhancement.SAFETY_PREPRUNING);
         enhancements.add(Enhancement.WU_UCT);
