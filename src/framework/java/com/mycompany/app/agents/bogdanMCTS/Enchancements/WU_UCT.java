@@ -9,12 +9,11 @@ import org.apache.commons.math3.util.Pair;
 import java.util.*;
 import java.util.concurrent.*;
 
-import static com.mycompany.app.agents.bogdanMCTS.MCTree.expand;
 import static com.mycompany.app.agents.bogdanMCTS.MCTree.select;
 
 public class WU_UCT {
-    private final static int MAX_EXPANSION_WORKERS = 8;
-    private final static int MAX_SIMULATION_WORKERS = 8;
+    private final static int MAX_EXPANSION_WORKERS = 4;
+    private final static int MAX_SIMULATION_WORKERS = 12;
 
     private static ExecutorService _expansionWorkers = Executors.newFixedThreadPool(MAX_EXPANSION_WORKERS);
     private static ExecutorService _simulationWorkers = Executors.newFixedThreadPool(MAX_SIMULATION_WORKERS);
@@ -101,7 +100,7 @@ public class WU_UCT {
     private static void incompleteUpdate(TreeNode node) {
         var currentNode = node;
         while (currentNode != null) {
-            currentNode.incrementVisitCount();
+            currentNode.incrementIncompleteVisitCount();
             currentNode = currentNode.getParent();
         }
     }

@@ -16,7 +16,8 @@ public class MCTree implements Cloneable {
     public static final float MAX_REWARD = 1.0f;
     public static final float MIN_REWARD = 0.0f;
 
-    public final static int MAX_SIMULATION_DEPTH = 15;
+    public final static int MAX_TREE_DEPTH = 20;
+    public final static int MAX_SIMULATION_DEPTH = 10;
     public final static double EXPLORATION_FACTOR = 0.188f;
     public final static boolean DETERMINISTIC = false;
     public final static int SEARCH_REPETITIONS = 100;
@@ -76,6 +77,9 @@ public class MCTree implements Cloneable {
         } else {
             while (timer.getRemainingTime() > 0) {
                 if (enhancements.contains(Enhancement.WU_UCT)) {
+                    if (timer.getRemainingTime() < 3) {
+                        break;
+                    }
                     WU_UCT.makeOneSearchStep(_root);
                 } else {
                     makeOneSearchStep(_root);
@@ -88,9 +92,6 @@ public class MCTree implements Cloneable {
         }
 
         TreeNode bestNode = _root.getBestChild(false);
-//        System.out.println(_root.getMaxSubTreeDepth());
-//        System.out.println(_root.getVisitCount());
-//        System.out.println(bestNode.getVisitCount());
         int bestActionId = bestNode.getActionId();
         if (!MCTree.enhancements.contains(Enhancement.TREE_REUSE)) {
             _root.clearSubTree();
@@ -126,7 +127,9 @@ public class MCTree implements Cloneable {
 
     public static boolean isExpandNeededForSelection(TreeNode node) {
         if (node.getVisitCount() > 0
-                && node.getChildrenSize() < Utils.availableActions.length) {
+                && node.getChildrenSize() < Utils.availableActions.length
+                && node.getDepth() < MCTree.MAX_TREE_DEPTH
+        ) {
             if (enhancements.contains(Enhancement.PARTIAL_EXPANSION)) {
                 return PartialExpansion.isItPartialExpandTime(node);
             } else {

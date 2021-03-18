@@ -32,9 +32,9 @@ public class Agent implements MarioAgent, Cloneable {
     public void initialize(MarioForwardModel model, MarioTimer timer) {
         HashSet<Enhancement> enhancements = new HashSet<>();
         enhancements.add(Enhancement.MIXMAX);
-//        enhancements.add(Enhancement.PARTIAL_EXPANSION);
-        enhancements.add(Enhancement.TREE_REUSE);
-//        enhancements.add(Enhancement.LOSS_AVOIDANCE);
+        enhancements.add(Enhancement.PARTIAL_EXPANSION);
+//        enhancements.add(Enhancement.TREE_REUSE);
+        enhancements.add(Enhancement.LOSS_AVOIDANCE);
 //        enhancements.add(Enhancement.HARD_PRUNING);
         enhancements.add(Enhancement.SAFETY_PREPRUNING);
         enhancements.add(Enhancement.WU_UCT);

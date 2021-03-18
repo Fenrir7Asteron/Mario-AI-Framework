@@ -49,6 +49,10 @@ public class TreeNode implements Cloneable {
     }
 
     public int getVisitCount() {
+        return data.visitCount + data.visitCountIncomplete;
+    }
+
+    public int getVisitCountComplete () {
         return data.visitCount;
     }
 
@@ -107,7 +111,12 @@ public class TreeNode implements Cloneable {
         data.scheduledExpansions = value;
     }
 
-    public void incrementVisitCount() {
+    public void incrementIncompleteVisitCount() {
+        data.visitCountIncomplete++;
+    }
+
+    public void incrementCompleteVisitCount() {
+        data.visitCountIncomplete--;
         data.visitCount++;
     }
 
@@ -195,8 +204,8 @@ public class TreeNode implements Cloneable {
             return Double.NEGATIVE_INFINITY;
         }
 
-        int n = parent.getChildrenSize();
-        int nj = getChildrenSize();
+        int n = parent.getVisitCount();
+        int nj = getVisitCount();
 
         double exploitation;
         if (MCTree.getEnhancements().contains(MCTree.Enhancement.MIXMAX)) {
@@ -265,27 +274,28 @@ public class TreeNode implements Cloneable {
 
     public void prune() {
         data.isPruned = true;
-        data.visitCount = 0;
+        data.visitCount = 1;
+        data.visitCountIncomplete = 0;
         data.maxReward = MCTree.MIN_REWARD;
-        data.totalReward = 0.0f;
-        updateReward(MCTree.MIN_REWARD);
+        data.averageReward = MCTree.MIN_REWARD;
+        data.totalReward = MCTree.MIN_REWARD;
     }
 
     public void updateReward(double reward) {
         if (!MCTree.getEnhancements().contains(MCTree.Enhancement.WU_UCT)) {
-            incrementVisitCount();
+            data.visitCount++;
+        } else {
+            incrementCompleteVisitCount();
         }
 
         data.totalReward += reward;
         data.maxReward = Math.max(data.maxReward, reward);
-        data.averageReward = data.totalReward / data.visitCount;
+        data.averageReward = data.totalReward / getVisitCountComplete();
     }
 
-    public void poolSnapshotFromParent() {
+    public void pullSnapshotFromParent() {
         data.sceneSnapshot = parent.data.sceneSnapshot.clone();
-//        if (data.visitCount > 0) {
-//            System.out.println("WARNING: VISIT COUNT > 0");
-//        }
+
         for (int i = 0; i < MCTree.getRepetitions(); i++) {
             data.sceneSnapshot.advance(Utils.availableActions[data.actionId]);
         }
@@ -310,7 +320,11 @@ public class TreeNode implements Cloneable {
 
     public int getMaxSubTreeDepth() {
         if (!children.isEmpty()) {
-            return children.get(0).getMaxSubTreeDepth();
+            int maxDepth = 0;
+            for (int i = 0; i < children.size(); ++i) {
+                maxDepth = Math.max(maxDepth, children.get(i).getMaxSubTreeDepth());
+            }
+            return maxDepth;
         }
         return data.depth;
     }

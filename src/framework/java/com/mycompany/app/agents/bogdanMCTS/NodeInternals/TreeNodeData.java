@@ -10,6 +10,7 @@ class TreeNodeData implements Cloneable {
     double totalReward;
     double averageReward;
     int visitCount;
+    int visitCountIncomplete;
     int depth;
     int actionId;
     int scheduledExpansions;
@@ -22,6 +23,7 @@ class TreeNodeData implements Cloneable {
         this.totalReward = 0;
         this.averageReward = 0;
         this.visitCount = 0;
+        this.visitCountIncomplete = 0;
         this.depth = 0;
         this.isPruned = false;
         this.scheduledExpansions = 0;
@@ -35,6 +37,7 @@ class TreeNodeData implements Cloneable {
         this.totalReward = 0;
         this.averageReward = 0;
         this.visitCount = 0;
+        this.visitCountIncomplete = 0;
         this.depth = 0;
         this.isPruned = false;
         this.scheduledExpansions = 0;
@@ -48,6 +51,7 @@ class TreeNodeData implements Cloneable {
         this.totalReward = 0;
         this.averageReward = 0;
         this.visitCount = 0;
+        this.visitCountIncomplete = 0;
         this.depth = 0;
         this.isPruned = false;
         this.scheduledExpansions = 0;
