@@ -17,9 +17,8 @@ public class Utils {
     };
 
     public static double calcReward(MarioForwardModel startSnapshot, MarioForwardModel endSnapshot, int currentDepth) {
-        if (endSnapshot.getGameStatus() != GameStatus.RUNNING) {
-            // If it is Game Over, there is either win or lose.
-            return endSnapshot.getGameStatus() == GameStatus.WIN ? MCTree.MAX_REWARD : MCTree.MIN_REWARD;
+        if (endSnapshot.getGameStatus() == GameStatus.WIN) {
+            return MCTree.MAX_REWARD;
         }
 
         double startX = startSnapshot.getMarioFloatPos()[0];
@@ -27,7 +26,11 @@ public class Utils {
         int damage = Math.max(0, startSnapshot.getMarioMode() - endSnapshot.getMarioMode()) +
                 Math.max(0, startSnapshot.getNumLives() - endSnapshot.getNumLives());
 
-        double reward = 0.5 +
+        if (endSnapshot.getGameStatus() == GameStatus.LOSE) {
+            damage += 1;
+        }
+
+        double reward = MCTree.BASE_REWARD +
                 MCTree.PROGRESS_WEIGHT * (endX - startX) / (11.0 * (1 + MCTree.MAX_SIMULATION_DEPTH))
 //                        + PATH_LENGTH_WEIGHT * (maxTreeDepth - currentDepth) / maxTreeDepth
                         - MCTree.DAMAGE_WEIGHT * damage;

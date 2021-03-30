@@ -159,6 +159,7 @@ public class PlayLevel {
 
 //        playSingleLevel(agents, "./levels/lvl-killer_plant.txt", PLAY_REPETITION_COUNT);
 //        playSingleLevel(agents, "./levels/original/lvl-3.txt", PLAY_REPETITION_COUNT);
+//        playSingleLevel(agents, "./levels/original/lvl-4.txt", PLAY_REPETITION_COUNT);
 
         if (MULTITHREADED) {
             for (var future : futures) {

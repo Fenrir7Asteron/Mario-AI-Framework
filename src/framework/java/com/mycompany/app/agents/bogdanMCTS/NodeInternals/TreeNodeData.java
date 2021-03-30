@@ -2,6 +2,8 @@ package com.mycompany.app.agents.bogdanMCTS.NodeInternals;
 
 import com.mycompany.app.engine.core.MarioForwardModel;
 
+import java.util.LinkedList;
+
 class TreeNodeData implements Cloneable {
     MarioForwardModel sceneSnapshot = null;
 

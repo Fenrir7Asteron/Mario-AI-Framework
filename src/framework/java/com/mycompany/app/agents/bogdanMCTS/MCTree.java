@@ -11,13 +11,15 @@ import java.util.*;
 public class MCTree implements Cloneable {
 
     public static final double PROGRESS_WEIGHT = 0.5;
+    public static final double BASE_REWARD = 0.5;
     public static final double DAMAGE_WEIGHT = 0.5;
+    public static final double AGE_DECAY = 0.01;
     public static final double PATH_LENGTH_WEIGHT = 0.5;
     public static final float MAX_REWARD = 1.0f;
     public static final float MIN_REWARD = 0.0f;
 
-    public final static int MAX_TREE_DEPTH = 20;
-    public final static int MAX_SIMULATION_DEPTH = 10;
+    public final static int MAX_TREE_DEPTH = 50;
+    public final static int MAX_SIMULATION_DEPTH = 5;
     public final static double EXPLORATION_FACTOR = 0.188f;
     public final static boolean DETERMINISTIC = false;
     public final static int SEARCH_REPETITIONS = 100;
@@ -89,6 +91,10 @@ public class MCTree implements Cloneable {
 
         if (enhancements.contains(Enhancement.WU_UCT)) {
             WU_UCT.clear();
+        }
+
+        if (enhancements.contains(Enhancement.N_GRAM_SELECTION)) {
+            NGramSelection.decayMoves();
         }
 
         TreeNode bestNode = _root.getBestChild(false);
@@ -169,10 +175,25 @@ public class MCTree implements Cloneable {
         return current;
     }
 
-    public static double simulate(TreeNode sourceNode) {
+    public static class SimulationResult {
+        public double reward;
+        public List<Integer> moveHistory;
+
+        public SimulationResult(double reward) {
+            this.reward = reward;
+            moveHistory = new LinkedList<>();
+        }
+
+        public SimulationResult(double reward, List<Integer> moveHistory) {
+            this.reward = reward;
+            this.moveHistory = moveHistory;
+        }
+    }
+
+    public static SimulationResult simulate(TreeNode sourceNode) {
         if (sourceNode.isLost()) {
             sourceNode.prune();
-            return MIN_REWARD;
+            return new SimulationResult(MIN_REWARD);
         }
 
         var sourceSnapshot = sourceNode.getSceneSnapshot();
@@ -180,34 +201,39 @@ public class MCTree implements Cloneable {
         TreeNode simulationNode = NodeBuilder.allocateNode(-1, null, sourceSnapshot.clone());
 
         int step = 0;
-        ArrayList<boolean[]> moveHistory = new ArrayList<>();
+        LinkedList<Integer> moveHistory = new LinkedList<>();
 
         while ((!simulationNode.isLost() || !simulationNode.isWin()) && step < MAX_SIMULATION_DEPTH) {
             ++step;
 
-            var nextMove = simulationNode.getRandomMove();
-            simulationNode.makeMove(nextMove);
-
-            if (enhancements.contains(Enhancement.LOSS_AVOIDANCE)) {
-                moveHistory.add(nextMove);
+            int nextMoveId;
+            if (MCTree.enhancements.contains(Enhancement.N_GRAM_SELECTION)) {
+                nextMoveId = NGramSelection.getMove(moveHistory);
+            } else {
+                nextMoveId = simulationNode.getRandomMove();
             }
+
+            simulationNode.makeMove(Utils.availableActions[nextMoveId]);
+            moveHistory.add(nextMoveId);
         }
 
         if (simulationNode.isLost()) {
             if (enhancements.contains(Enhancement.LOSS_AVOIDANCE)) {
                 // Try find a sibling simulation node with minimal loss.
-                return LossAvoidance.AvoidLoss(moveHistory, sourceNode);
-            } else {
-                return MIN_REWARD;
+                return LossAvoidance.AvoidLoss(moveHistory, sourceNode, sourceNode.getDepth());
             }
         }
 
         if (simulationNode.isWin()) {
-            return MAX_REWARD;
+            return new SimulationResult(MAX_REWARD, moveHistory);
         }
 
         // Return reward at the end of a simulation.
-        return Utils.calcReward(sourceSnapshot, simulationNode.getSceneSnapshot(), sourceNode.getDepth());
+        return new SimulationResult(Utils.calcReward(
+                    sourceSnapshot,
+                    simulationNode.getSceneSnapshot(),
+                    sourceNode.getDepth())
+                , moveHistory);
     }
 
     public static void backpropagate(TreeNode currentNode, double reward) {
@@ -228,6 +254,8 @@ public class MCTree implements Cloneable {
         HARD_PRUNING,
         SAFETY_PREPRUNING,
         WU_UCT,
+        AGING,
+        N_GRAM_SELECTION,
     }
 
 
@@ -236,7 +264,10 @@ public class MCTree implements Cloneable {
         if (isExpandNeededForSelection(node)) {
             node = expand(node);
         }
-        double reward = simulate(node);
-        backpropagate(node, reward);
+        SimulationResult result = simulate(node);
+        if (MCTree.enhancements.contains(Enhancement.N_GRAM_SELECTION)) {
+            NGramSelection.updateRewards(result.moveHistory, result.reward);
+        }
+        backpropagate(node, result.reward);
     }
 }

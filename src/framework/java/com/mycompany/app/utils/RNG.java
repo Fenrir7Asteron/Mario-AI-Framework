@@ -10,8 +10,10 @@ public class RNG {
     }
 
     public static int nextInt(int upperBound) {
-        var res = random.nextInt(upperBound);
-//        System.out.println(res);
-        return res;
+        return random.nextInt(upperBound);
+    }
+
+    public static float nextFloat() {
+        return random.nextFloat();
     }
 }

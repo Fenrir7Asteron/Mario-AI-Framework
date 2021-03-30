@@ -12,8 +12,8 @@ import java.util.concurrent.*;
 import static com.mycompany.app.agents.bogdanMCTS.MCTree.select;
 
 public class WU_UCT {
-    private final static int MAX_EXPANSION_WORKERS = 4;
-    private final static int MAX_SIMULATION_WORKERS = 12;
+    private final static int MAX_EXPANSION_WORKERS = 6;
+    private final static int MAX_SIMULATION_WORKERS = 10;
 
     private static ExecutorService _expansionWorkers = Executors.newFixedThreadPool(MAX_EXPANSION_WORKERS);
     private static ExecutorService _simulationWorkers = Executors.newFixedThreadPool(MAX_SIMULATION_WORKERS);
@@ -82,7 +82,7 @@ public class WU_UCT {
 
             try {
                 _simulationFutures.add(CompletableFuture.supplyAsync(
-                        () -> new Pair(MCTree.simulate(nodeToSimulate), task),
+                        () -> new Pair<MCTree.SimulationResult, Integer>(MCTree.simulate(nodeToSimulate), task),
                         _simulationWorkers
                 ));
             } catch (RejectedExecutionException ignored) {
@@ -120,9 +120,18 @@ public class WU_UCT {
         var simulationFuture = _simulationFutures.removeFirst();
 
         try {
-            Pair<Double, Integer> simulationResult = (Pair<Double, Integer>) simulationFuture.get();
-            var simulatedNode = _simulationTaskRecorder.get(simulationResult.getSecond());
-            MCTree.backpropagate(simulatedNode, simulationResult.getFirst());
+            Pair<MCTree.SimulationResult, Integer> simulationWorkerResult = (Pair<MCTree.SimulationResult, Integer>) simulationFuture.get();
+            MCTree.SimulationResult simulationResult = simulationWorkerResult.getFirst();
+            int task = simulationWorkerResult.getSecond();
+            var simulatedNode = _simulationTaskRecorder.get(task);
+
+            if (MCTree.getEnhancements().contains(MCTree.Enhancement.N_GRAM_SELECTION)) {
+                NGramSelection.updateRewards(
+                        simulationResult.moveHistory,
+                        simulationResult.reward
+                );
+            }
+            MCTree.backpropagate(simulatedNode, simulationResult.reward);
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }

@@ -9,8 +9,8 @@ import java.util.Comparator;
 import java.util.stream.Collectors;
 
 public class HardPruning {
-    private final static int MIN_VISITS = 100;
-    private final static int MIN_REMAINING_CHILDREN = 4;
+    private final static int MIN_VISITS = 150;
+    private final static int MIN_REMAINING_CHILDREN = 3;
     private final static double PRUNING_SPEED = 1.0f;
 
     public static void tryPruneChildren(TreeNode parent) {

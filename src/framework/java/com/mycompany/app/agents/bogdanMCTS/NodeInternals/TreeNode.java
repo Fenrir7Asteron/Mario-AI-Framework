@@ -190,9 +190,8 @@ public class TreeNode implements Cloneable {
         }
     }
 
-    public boolean[] getRandomMove() {
-        int rand = RNG.nextInt(Utils.availableActions.length);
-        return Utils.availableActions[rand];
+    public Integer getRandomMove() {
+        return RNG.nextInt(Utils.availableActions.length);
     }
 
     public List<boolean[]> getAllMoves() {
@@ -213,6 +212,7 @@ public class TreeNode implements Cloneable {
         } else {
             exploitation = data.averageReward;
         }
+
         double exploration = 0.0f;
         if (explore) {
             if (nj == 0) {
@@ -221,6 +221,7 @@ public class TreeNode implements Cloneable {
 
             exploration = MCTree.getExplorationFactor() * Math.sqrt(2 * Math.log(n) / nj);
         }
+
         return exploitation + exploration;
     }
 
@@ -234,15 +235,15 @@ public class TreeNode implements Cloneable {
         }
     }
 
-    public void makeMoves(List<boolean[]> moves) {
-        for (var move : moves) {
-            makeMove(move);
+    public void makeMoves(List<Integer> moveIds) {
+        for (var moveId : moveIds) {
+            makeMove(Utils.availableActions[moveId]);
         }
     }
 
-    public void makeMoves(List<boolean[]> moves, int repetitions) {
-        for (var move : moves) {
-            makeMove(move, repetitions);
+    public void makeMoves(List<Integer> moveIds, int repetitions) {
+        for (var moveId : moveIds) {
+            makeMove(Utils.availableActions[moveId], repetitions);
         }
     }
 
@@ -282,6 +283,15 @@ public class TreeNode implements Cloneable {
     }
 
     public void updateReward(double reward) {
+        if (MCTree.getEnhancements().contains(MCTree.Enhancement.AGING)) {
+//            data.maxReward -= (data.maxReward - MCTree.BASE_REWARD) * MCTree.AGE_WEIGHT_PER_STEP;
+//            data.maxReward *= (1 - MCTree.AGE_WEIGHT_PER_STEP);
+//            System.out.println("BEFORE: " + data.totalReward);
+            data.totalReward -= (data.totalReward - MCTree.BASE_REWARD * getVisitCountComplete()) * MCTree.AGE_DECAY;
+//            data.totalReward *= (1 - MCTree.AGE_WEIGHT_PER_STEP);
+//            System.out.println("AFTER: " + data.totalReward);
+        }
+
         if (!MCTree.getEnhancements().contains(MCTree.Enhancement.WU_UCT)) {
             data.visitCount++;
         } else {
