@@ -11,8 +11,8 @@ class TreeNodeData implements Cloneable {
     double maxConfidence;
     double totalReward;
     double averageReward;
-    int visitCount;
-    int visitCountIncomplete;
+    float visitCount;
+    float visitCountIncomplete;
     int depth;
     int actionId;
     int scheduledExpansions;

@@ -1,6 +1,8 @@
 package com.mycompany.app;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -10,6 +12,7 @@ import java.util.concurrent.Future;
 
 import com.mycompany.app.agents.bogdanMCTS.Agent;
 import com.mycompany.app.agents.bogdanMCTS.NodeInternals.NodeBuilder;
+import com.mycompany.app.agents.bogdanMCTS.PaperAgent;
 import com.mycompany.app.engine.core.*;
 import com.mycompany.app.utils.Score;
 import com.mycompany.app.utils.ThreadPool;
@@ -69,7 +72,7 @@ public class PlayLevel {
         return 0;
     }
 
-    private static void playLevel(Agent agent, String levelName) {
+    private static void playLevel(PaperAgent agent, String levelName) {
         int levelWidth;
         levelWidth = calcLevelWidth(levelName);
 
@@ -80,15 +83,16 @@ public class PlayLevel {
         MarioGame game = new MarioGame();
 
         if (MULTITHREADED) {
-            Agent threadAgent = null;
+            PaperAgent threadAgent = null;
             try {
-                threadAgent = (Agent) agent.clone();
-            } catch (CloneNotSupportedException e) {
+                Constructor constructor = agent.getClass().getConstructor();
+                threadAgent = (PaperAgent) constructor.newInstance();
+            } catch (InstantiationException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
                 e.printStackTrace();
             }
 
             // Play level in a different thread. The option is off when the play is visualized.
-            Agent finalThreadAgent = threadAgent;
+            PaperAgent finalThreadAgent = threadAgent;
             futures.add(ThreadPool.parallelGamesThreadPool.submit(() -> {
                 var result = game.runGame(finalThreadAgent, getLevel(levelName), TIME_FOR_LEVEL, MARIO_START_MODE, VISUALIZATION);
 //                var score = result.getCompletionPercentage() * levelWidth * DISTANCE_MULTIPLIER;
@@ -102,12 +106,14 @@ public class PlayLevel {
 //            var score = result.getCompletionPercentage() * levelWidth * DISTANCE_MULTIPLIER;
             var score = result.getCompletionPercentage();
             var time = (double) result.getRemainingTime() / 1000;
-            agent.addResult(new Score(score, time));
+            if (agent instanceof Agent bogdanAgent) {
+                bogdanAgent.addResult(new Score(score, time));
+            }
             progressBar.step();
         }
     }
 
-    private static void playListOfLevels(List<Agent> agents, List<String> levels) {
+    private static void playListOfLevels(List<PaperAgent> agents, List<String> levels) {
         progressBar = new ProgressBar("Levels", levels.size());
 
         for (var levelPath : levels) {
@@ -117,7 +123,7 @@ public class PlayLevel {
         }
     }
 
-    private static void playAllFolderLevels(List<Agent> agents, final String levelFolder) {
+    private static void playAllFolderLevels(List<PaperAgent> agents, final String levelFolder) {
         // Play all levels from a level folder
         ArrayList<String> levels = new ArrayList<>();
         try {
@@ -130,7 +136,7 @@ public class PlayLevel {
         playListOfLevels(agents, levels);
     }
 
-    private static void playSingleLevel(List<Agent> agents, final String levelPath, final int playRepetitionCount) {
+    private static void playSingleLevel(List<PaperAgent> agents, final String levelPath, final int playRepetitionCount) {
         progressBar = new ProgressBar("Repetitions", playRepetitionCount);
 
         for (int i = 0; i < playRepetitionCount; ++i) {
@@ -141,7 +147,7 @@ public class PlayLevel {
         }
     }
 
-    private static void printStatistics(List<Agent> agents) {
+    private static void printStatistics(List<PaperAgent> agents) {
         for (var agent : agents) {
             System.out.println("--------------------------------------------------------------------");
             System.out.println("Average score for " + agent.getAgentName() + ": " + agent.averageScore());
@@ -152,14 +158,15 @@ public class PlayLevel {
     public static void main(String[] args) {
         var time = System.currentTimeMillis();
 
-        List<Agent> agents = new ArrayList<>();
-        agents.add(new com.mycompany.app.agents.bogdanMCTS.Agent());
+        List<PaperAgent> agents = new ArrayList<>();
+//        agents.add(new com.mycompany.app.agents.bogdanMCTS.Agent());
+        agents.add(new com.mycompany.app.agents.robinBaumgarten.Agent());
 
-        playAllFolderLevels(agents, LEVEL_DIR);
+//        playAllFolderLevels(agents, LEVEL_DIR);
 
 //        playSingleLevel(agents, "./levels/lvl-killer_plant.txt", PLAY_REPETITION_COUNT);
 //        playSingleLevel(agents, "./levels/original/lvl-3.txt", PLAY_REPETITION_COUNT);
-//        playSingleLevel(agents, "./levels/original/lvl-4.txt", PLAY_REPETITION_COUNT);
+        playSingleLevel(agents, "./levels/original/lvl-5.txt", PLAY_REPETITION_COUNT);
 
         if (MULTITHREADED) {
             for (var future : futures) {

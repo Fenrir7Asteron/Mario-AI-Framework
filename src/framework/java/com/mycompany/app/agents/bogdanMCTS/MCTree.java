@@ -18,8 +18,8 @@ public class MCTree implements Cloneable {
     public static final float MAX_REWARD = 1.0f;
     public static final float MIN_REWARD = 0.0f;
 
-    public final static int MAX_TREE_DEPTH = 50;
-    public final static int MAX_SIMULATION_DEPTH = 5;
+    public final static int MAX_TREE_DEPTH = 1000;
+    public final static int MAX_SIMULATION_DEPTH = 8;
     public final static double EXPLORATION_FACTOR = 0.188f;
     public final static boolean DETERMINISTIC = false;
     public final static int SEARCH_REPETITIONS = 100;
@@ -27,11 +27,15 @@ public class MCTree implements Cloneable {
     static Set<Enhancement> enhancements;
 
     private TreeNode _root = null;
+    private WU_UCT _wuUct = null;
+    private NGramSelection _nGramSelection = null;
 
     MCTree(MarioForwardModel model, int repetitions, Set<Enhancement> enhancements) {
         MCTree.repetitions = repetitions;
         MCTree.enhancements = enhancements;
         initializeRoot(model);
+        _wuUct = new WU_UCT();
+        _nGramSelection = new NGramSelection();
     }
 
     public static double getExplorationFactor() {
@@ -50,8 +54,12 @@ public class MCTree implements Cloneable {
         return enhancements;
     }
 
+    public NGramSelection getNGramSelection() {
+        return _nGramSelection;
+    }
+
     public void initializeRoot(MarioForwardModel model) {
-        _root = NodeBuilder.allocateNode(-1, null, model.clone());
+        _root = NodeBuilder.allocateNode(-1, null, this, model.clone());
 
         if (!enhancements.contains(Enhancement.PARTIAL_EXPANSION)) {
             _root.expandAll();
@@ -70,7 +78,7 @@ public class MCTree implements Cloneable {
 
             while (count < SEARCH_REPETITIONS) {
                 if (enhancements.contains(Enhancement.WU_UCT)) {
-                    WU_UCT.makeOneSearchStep(_root);
+                    _wuUct.makeOneSearchStep(_root);
                 } else {
                     makeOneSearchStep(_root);
                 }
@@ -82,7 +90,7 @@ public class MCTree implements Cloneable {
                     if (timer.getRemainingTime() < 3) {
                         break;
                     }
-                    WU_UCT.makeOneSearchStep(_root);
+                    _wuUct.makeOneSearchStep(_root);
                 } else {
                     makeOneSearchStep(_root);
                 }
@@ -90,11 +98,11 @@ public class MCTree implements Cloneable {
         }
 
         if (enhancements.contains(Enhancement.WU_UCT)) {
-            WU_UCT.clear();
+            _wuUct.clear();
         }
 
         if (enhancements.contains(Enhancement.N_GRAM_SELECTION)) {
-            NGramSelection.decayMoves();
+            _nGramSelection.decayMoves();
         }
 
         TreeNode bestNode = _root.getBestChild(false);
@@ -190,7 +198,7 @@ public class MCTree implements Cloneable {
         }
     }
 
-    public static SimulationResult simulate(TreeNode sourceNode) {
+    public SimulationResult simulate(TreeNode sourceNode) {
         if (sourceNode.isLost()) {
             sourceNode.prune();
             return new SimulationResult(MIN_REWARD);
@@ -198,7 +206,7 @@ public class MCTree implements Cloneable {
 
         var sourceSnapshot = sourceNode.getSceneSnapshot();
 
-        TreeNode simulationNode = NodeBuilder.allocateNode(-1, null, sourceSnapshot.clone());
+        TreeNode simulationNode = NodeBuilder.allocateNode(-1, null, this, sourceSnapshot.clone());
 
         int step = 0;
         LinkedList<Integer> moveHistory = new LinkedList<>();
@@ -208,7 +216,7 @@ public class MCTree implements Cloneable {
 
             int nextMoveId;
             if (MCTree.enhancements.contains(Enhancement.N_GRAM_SELECTION)) {
-                nextMoveId = NGramSelection.getMove(moveHistory);
+                nextMoveId = _nGramSelection.getMove(moveHistory);
             } else {
                 nextMoveId = simulationNode.getRandomMove();
             }
@@ -266,7 +274,7 @@ public class MCTree implements Cloneable {
         }
         SimulationResult result = simulate(node);
         if (MCTree.enhancements.contains(Enhancement.N_GRAM_SELECTION)) {
-            NGramSelection.updateRewards(result.moveHistory, result.reward);
+            _nGramSelection.updateRewards(result.moveHistory, result.reward);
         }
         backpropagate(node, result.reward);
     }

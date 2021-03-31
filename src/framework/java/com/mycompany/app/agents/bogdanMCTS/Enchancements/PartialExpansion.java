@@ -6,7 +6,7 @@ import com.mycompany.app.agents.bogdanMCTS.Utils;
 
 public class PartialExpansion {
     public static boolean isItPartialExpandTime(TreeNode node) {
-        int n = node.getVisitCount();
+        float n = node.getVisitCount();
         int expands = node.getChildrenSize();
 
         double unexploredConf = 0.5 + MCTree.EXPLORATION_FACTOR * Math.sqrt(2 * Math.log(n) / (1 + expands));

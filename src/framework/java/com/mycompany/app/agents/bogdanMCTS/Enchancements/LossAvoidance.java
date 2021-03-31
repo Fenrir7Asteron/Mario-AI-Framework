@@ -17,7 +17,10 @@ public class LossAvoidance {
         var sourceSnapshot = sourceNode.getSceneSnapshot();
 
         // Create another simulation node and advance it until one move before the loss.
-        TreeNode lossAvoidingSimulationNode = NodeBuilder.allocateNode(-1, null,
+        TreeNode lossAvoidingSimulationNode = NodeBuilder.allocateNode(
+                -1,
+                null,
+                sourceNode.getTree(),
                 sourceSnapshot.clone());
         moveHistory.removeLast();
         lossAvoidingSimulationNode.makeMoves(moveHistory);
@@ -47,8 +50,11 @@ public class LossAvoidance {
 //        }
 
         for (int moveId = 0; moveId < Utils.availableActions.length; ++moveId) {
-            TreeNode nodeVariant = NodeBuilder.allocateNode(-1, null,
-            lossAvoidingSimulationNode.getSceneSnapshot().clone());
+            TreeNode nodeVariant = NodeBuilder.allocateNode(
+                    -1,
+                    null,
+                    sourceNode.getTree(),
+                    lossAvoidingSimulationNode.getSceneSnapshot().clone());
             nodeVariant.makeMove(Utils.availableActions[moveId]);
             double reward = Utils.calcReward(sourceSnapshot, nodeVariant.getSceneSnapshot(), currentDepth);
             if (reward > maxReward) {

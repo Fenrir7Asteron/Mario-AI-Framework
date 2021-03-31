@@ -13,9 +13,9 @@ public class NGramSelection {
     private static final double DECAY_FACTOR = 0.001f;
     private static final double EPSILON = 0.1f;
 
-    private static Hashtable<String, Result> nGramResultsMapping = new Hashtable<>();
+    private Hashtable<String, Result> nGramResultsMapping = new Hashtable<>();
 
-    private static class Result {
+    private class Result {
         public double totalReward;
         public double visitCount;
 
@@ -25,7 +25,7 @@ public class NGramSelection {
         }
     }
 
-    public static int getMove(List<Integer> moveHistory) {
+    public int getMove(List<Integer> moveHistory) {
         if (RNG.nextFloat() < EPSILON) {
             // Return random move with EPSILON probability.
             return RNG.nextInt(Utils.availableActions.length);
@@ -45,7 +45,7 @@ public class NGramSelection {
         return bestActionId;
     }
 
-    public static void updateRewards(List<Integer> moveHistory, double reward) {
+    public void updateRewards(List<Integer> moveHistory, double reward) {
         for (int i = 0; i < moveHistory.size(); ++i) {
             String nGram = "";
             for (int j = i; j < Math.min(i + N, moveHistory.size()); ++j) {
@@ -55,7 +55,7 @@ public class NGramSelection {
         }
     }
 
-    public static void decayMoves() {
+    public void decayMoves() {
         for (var nGram : nGramResultsMapping.keySet()) {
             Result decayedResult = nGramResultsMapping.get(nGram);
             decayedResult.totalReward -= (decayedResult.totalReward - MCTree.BASE_REWARD * decayedResult.visitCount) * DECAY_FACTOR;
@@ -65,7 +65,7 @@ public class NGramSelection {
         }
     }
 
-    private static void putRewardInTable(String nGram, double reward) {
+    private void putRewardInTable(String nGram, double reward) {
         if (nGramResultsMapping.containsKey(nGram)) {
             Result result = nGramResultsMapping.get(nGram);
             result.totalReward += reward;
@@ -76,7 +76,7 @@ public class NGramSelection {
         }
     }
 
-    private static double getAverageRewardByAction(List<Integer> moveHistory, Integer actionCandidate) {
+    private double getAverageRewardByAction(List<Integer> moveHistory, Integer actionCandidate) {
         String nGram = "";
         nGram = String.format("%02d", actionCandidate) + nGram;
 

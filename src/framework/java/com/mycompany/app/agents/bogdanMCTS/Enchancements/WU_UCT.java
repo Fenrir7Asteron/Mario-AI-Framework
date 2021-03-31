@@ -15,17 +15,17 @@ public class WU_UCT {
     private final static int MAX_EXPANSION_WORKERS = 6;
     private final static int MAX_SIMULATION_WORKERS = 10;
 
-    private static ExecutorService _expansionWorkers = Executors.newFixedThreadPool(MAX_EXPANSION_WORKERS);
-    private static ExecutorService _simulationWorkers = Executors.newFixedThreadPool(MAX_SIMULATION_WORKERS);
-    private static LinkedList<CompletableFuture> _expansionFutures = new LinkedList<>();
-    private static LinkedList<CompletableFuture> _simulationFutures = new LinkedList<>();
-    private static ArrayList<Integer> _unscheduledExpansionTasks = new ArrayList<>();
-    private static ArrayList<Integer> _unscheduledSimulationTasks = new ArrayList<>();
-    private static HashMap<Integer, TreeNode> _expansionTaskRecorder = new HashMap<>();
-    private static HashMap<Integer, TreeNode> _simulationTaskRecorder = new HashMap<>();
-    private static int _searchId;
+    private ExecutorService _expansionWorkers = Executors.newFixedThreadPool(MAX_EXPANSION_WORKERS);
+    private ExecutorService _simulationWorkers = Executors.newFixedThreadPool(MAX_SIMULATION_WORKERS);
+    private LinkedList<CompletableFuture> _expansionFutures = new LinkedList<>();
+    private LinkedList<CompletableFuture> _simulationFutures = new LinkedList<>();
+    private ArrayList<Integer> _unscheduledExpansionTasks = new ArrayList<>();
+    private ArrayList<Integer> _unscheduledSimulationTasks = new ArrayList<>();
+    private HashMap<Integer, TreeNode> _expansionTaskRecorder = new HashMap<>();
+    private HashMap<Integer, TreeNode> _simulationTaskRecorder = new HashMap<>();
+    private int _searchId;
 
-    public static void makeOneSearchStep(TreeNode root) {
+    public void makeOneSearchStep(TreeNode root) {
         TreeNode selectedNode = select(root);
 
         if (MCTree.isExpandNeededForSelection(selectedNode)
@@ -82,7 +82,7 @@ public class WU_UCT {
 
             try {
                 _simulationFutures.add(CompletableFuture.supplyAsync(
-                        () -> new Pair<MCTree.SimulationResult, Integer>(MCTree.simulate(nodeToSimulate), task),
+                        () -> new Pair<>(nodeToSimulate.getTree().simulate(nodeToSimulate), task),
                         _simulationWorkers
                 ));
             } catch (RejectedExecutionException ignored) {
@@ -97,7 +97,7 @@ public class WU_UCT {
         ++_searchId;
     }
 
-    private static void incompleteUpdate(TreeNode node) {
+    private void incompleteUpdate(TreeNode node) {
         var currentNode = node;
         while (currentNode != null) {
             currentNode.incrementIncompleteVisitCount();
@@ -105,7 +105,7 @@ public class WU_UCT {
         }
     }
 
-    private static void waitExpansionWorker() {
+    private void waitExpansionWorker() {
         var expansionFuture = _expansionFutures.removeFirst();
         try {
             var nodeToSimulate = (TreeNode) expansionFuture.get();
@@ -116,7 +116,7 @@ public class WU_UCT {
         }
     }
 
-    private static void waitSimulationWorker() {
+    private void waitSimulationWorker() {
         var simulationFuture = _simulationFutures.removeFirst();
 
         try {
@@ -126,7 +126,7 @@ public class WU_UCT {
             var simulatedNode = _simulationTaskRecorder.get(task);
 
             if (MCTree.getEnhancements().contains(MCTree.Enhancement.N_GRAM_SELECTION)) {
-                NGramSelection.updateRewards(
+                simulatedNode.getTree().getNGramSelection().updateRewards(
                         simulationResult.moveHistory,
                         simulationResult.reward
                 );
@@ -137,7 +137,7 @@ public class WU_UCT {
         }
     }
 
-    public static void clear() {
+    public void clear() {
         while (_expansionFutures.size() > 0) {
             waitExpansionWorker();
         }

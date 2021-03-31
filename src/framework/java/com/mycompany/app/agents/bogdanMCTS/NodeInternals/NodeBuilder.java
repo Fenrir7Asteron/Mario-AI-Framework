@@ -1,5 +1,6 @@
 package com.mycompany.app.agents.bogdanMCTS.NodeInternals;
 
+import com.mycompany.app.agents.bogdanMCTS.MCTree;
 import com.mycompany.app.engine.core.MarioForwardModel;
 
 import java.util.ArrayList;
@@ -13,7 +14,9 @@ public class NodeBuilder {
 //
 //    private static final LinkedBlockingQueue<TreeNode> nodePool = new LinkedBlockingQueue<>();
 
-    public static TreeNode allocateNode(int actionId, TreeNode parent,
+    public static TreeNode allocateNode(int actionId,
+                                        TreeNode parent,
+                                        MCTree tree,
                                         MarioForwardModel sceneSnapshot) {
 //        if (nodePool.size() > 0) {
 //            var node = nodePool.remove();
@@ -23,7 +26,7 @@ public class NodeBuilder {
 //
 //            return node;
 //        }
-        return new TreeNode(actionId, parent, sceneSnapshot);
+        return new TreeNode(actionId, parent, sceneSnapshot, tree);
     }
 
     public static  void deallocateNode(TreeNode node) {

@@ -15,7 +15,7 @@ import static com.mycompany.app.utils.MyMath.average;
 /**
  * @author BogdanFedotov
  */
-public class Agent implements MarioAgent, Cloneable {
+public class Agent implements PaperAgent {
     public enum Hyperparameter {
         MAX_DEPTH,
         EXPLORATION_FACTOR,
@@ -33,12 +33,12 @@ public class Agent implements MarioAgent, Cloneable {
         HashSet<Enhancement> enhancements = new HashSet<>();
         enhancements.add(Enhancement.MIXMAX);
         enhancements.add(Enhancement.PARTIAL_EXPANSION);
-//        enhancements.add(Enhancement.TREE_REUSE);
-        enhancements.add(Enhancement.LOSS_AVOIDANCE);
+        enhancements.add(Enhancement.TREE_REUSE);
+//        enhancements.add(Enhancement.LOSS_AVOIDANCE);
 //        enhancements.add(Enhancement.HARD_PRUNING);
         enhancements.add(Enhancement.SAFETY_PREPRUNING);
         enhancements.add(Enhancement.WU_UCT);
-//        enhancements.add(Enhancement.AGING);
+        enhancements.add(Enhancement.AGING);
         enhancements.add(Enhancement.N_GRAM_SELECTION);
         tree = new MCTree(model, 1, enhancements);
     }

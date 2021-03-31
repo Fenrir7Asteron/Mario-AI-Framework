@@ -13,8 +13,9 @@ public class TreeNode implements Cloneable {
     TreeNodeData data;
     TreeNode parent;
     ArrayList<TreeNode> children;
+    MCTree tree;
 
-    public TreeNode(int actionId, TreeNode parent) {
+    public TreeNode(int actionId, TreeNode parent, MCTree tree) {
         this.data = new TreeNodeData(actionId);
 
         this.parent = parent;
@@ -23,9 +24,10 @@ public class TreeNode implements Cloneable {
         }
 
         this.children = new ArrayList<>();
+        this.tree = tree;
     }
 
-    public TreeNode(int actionId, TreeNode parent, MarioForwardModel sceneSnapshot) {
+    public TreeNode(int actionId, TreeNode parent, MarioForwardModel sceneSnapshot, MCTree tree) {
         this.data = new TreeNodeData(actionId, sceneSnapshot);
 
         this.parent = parent;
@@ -34,6 +36,7 @@ public class TreeNode implements Cloneable {
         }
 
         this.children = new ArrayList<>();
+        this.tree = tree;
     }
 
     public MarioForwardModel getSceneSnapshot() {
@@ -44,15 +47,19 @@ public class TreeNode implements Cloneable {
         return parent;
     }
 
+    public MCTree getTree() {
+        return tree;
+    }
+
     public ArrayList<TreeNode> getChildren() {
         return children;
     }
 
-    public int getVisitCount() {
+    public float getVisitCount() {
         return data.visitCount + data.visitCountIncomplete;
     }
 
-    public int getVisitCountComplete () {
+    public float getVisitCountComplete () {
         return data.visitCount;
     }
 
@@ -124,7 +131,7 @@ public class TreeNode implements Cloneable {
         // Expand node to all possible actions
         var freeIds = getFreeIds();
         for (var newId : freeIds) {
-            TreeNode child = NodeBuilder.allocateNode(newId, this, null);
+            TreeNode child = NodeBuilder.allocateNode(newId, this, tree, null);
             child.simulatePos();
             children.add(child);
         }
@@ -137,7 +144,7 @@ public class TreeNode implements Cloneable {
         var freeIds = getFreeIds();
         if (freeIds.size() > 0) {
             int newId = freeIds.get(RNG.nextInt(freeIds.size()));
-            TreeNode child = NodeBuilder.allocateNode(newId, this, null);
+            TreeNode child = NodeBuilder.allocateNode(newId, this, tree, null);
             child.simulatePos();
             children.add(child);
             return child;
@@ -203,8 +210,8 @@ public class TreeNode implements Cloneable {
             return Double.NEGATIVE_INFINITY;
         }
 
-        int n = parent.getVisitCount();
-        int nj = getVisitCount();
+        float n = parent.getVisitCount();
+        float nj = getVisitCount();
 
         double exploitation;
         if (MCTree.getEnhancements().contains(MCTree.Enhancement.MIXMAX)) {
@@ -288,6 +295,8 @@ public class TreeNode implements Cloneable {
 //            data.maxReward *= (1 - MCTree.AGE_WEIGHT_PER_STEP);
 //            System.out.println("BEFORE: " + data.totalReward);
             data.totalReward -= (data.totalReward - MCTree.BASE_REWARD * getVisitCountComplete()) * MCTree.AGE_DECAY;
+            data.visitCountIncomplete *= (1 - MCTree.AGE_DECAY);
+            data.visitCount *= (1 - MCTree.AGE_DECAY);
 //            data.totalReward *= (1 - MCTree.AGE_WEIGHT_PER_STEP);
 //            System.out.println("AFTER: " + data.totalReward);
         }
