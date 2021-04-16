@@ -1,9 +1,9 @@
 package com.mycompany.app.agents.bogdanMCTS;
 
 import com.mycompany.app.agents.bogdanMCTS.MCTree.Enhancement;
-import com.mycompany.app.engine.core.MarioAgent;
 import com.mycompany.app.engine.core.MarioForwardModel;
 import com.mycompany.app.engine.core.MarioTimer;
+import com.mycompany.app.utils.FileWriter;
 import com.mycompany.app.utils.Score;
 
 import java.io.FileOutputStream;
@@ -32,10 +32,10 @@ public class Agent implements PaperAgent {
     public void initialize(MarioForwardModel model, MarioTimer timer) {
         HashSet<Enhancement> enhancements = new HashSet<>();
         enhancements.add(Enhancement.MIXMAX);
-        enhancements.add(Enhancement.PARTIAL_EXPANSION);
+//        enhancements.add(Enhancement.PARTIAL_EXPANSION);
         enhancements.add(Enhancement.TREE_REUSE);
-//        enhancements.add(Enhancement.LOSS_AVOIDANCE);
-//        enhancements.add(Enhancement.HARD_PRUNING);
+        enhancements.add(Enhancement.LOSS_AVOIDANCE);
+        enhancements.add(Enhancement.HARD_PRUNING);
         enhancements.add(Enhancement.SAFETY_PREPRUNING);
         enhancements.add(Enhancement.WU_UCT);
         enhancements.add(Enhancement.AGING);
@@ -60,44 +60,25 @@ public class Agent implements PaperAgent {
     }
 
     @Override
-    public Object clone() throws CloneNotSupportedException {
-        Agent cloned = (Agent) super.clone();
-        if (cloned.tree != null) {
-            cloned.tree = (MCTree) cloned.tree.clone();
-        }
-        return cloned;
-    }
-
     public void addResult(Score newScore) {
         resultScores.add(newScore.score);
         resultTimes.add(newScore.time);
     }
 
+    @Override
     public double averageScore() {
         return average(resultScores);
     }
 
+    @Override
     public double averageTime() {
         return average(resultTimes);
     }
 
-    public void outputScores(long levelCount) {
-        var namePrefix = getAgentName() + levelCount + enhancementsToString();
-
-        try(FileOutputStream fos = new FileOutputStream(DATA_FOLDER + namePrefix + ".txt"))
-        {
-            for (var score : resultScores) {
-                byte[] buffer = (score.toString() + "\n").getBytes();
-
-                fos.write(buffer, 0, buffer.length);
-            }
-        }
-        catch(IOException ex){
-            ex.printStackTrace();
-        }
-
-        System.out.println("--------------------------------------------------------------------");
-        System.out.println("Agent [" + namePrefix + "]: The file has been written");
+    @Override
+    public void outputScores(int numberOfSamples) {
+        String namePrefix = getAgentName() + numberOfSamples + enhancementsToString();
+        FileWriter.outputScoresToFile(numberOfSamples, resultScores, DATA_FOLDER, namePrefix);
     }
 
     private String enhancementsToString() {

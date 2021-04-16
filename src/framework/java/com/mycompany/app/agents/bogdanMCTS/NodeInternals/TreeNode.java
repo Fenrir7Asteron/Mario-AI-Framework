@@ -89,6 +89,9 @@ public class TreeNode implements Cloneable {
 
         for (int i = 1; i < children.size(); ++i) {
             var child = children.get(i);
+            if (child.isPruned()) {
+                continue;
+            }
 
             double confidence = child.calcConfidence(explore);
             if (confidence > maxConfidence) {
@@ -153,21 +156,6 @@ public class TreeNode implements Cloneable {
             // Return random node among expands
             return children.get(RNG.nextInt(children.size()));
         }
-    }
-
-    @Override
-    public Object clone() throws CloneNotSupportedException {
-        TreeNode cloned = (TreeNode) super.clone();
-        if (cloned.data != null) {
-            cloned.data = (TreeNodeData) cloned.data.clone();
-        }
-        if (cloned.parent != null) {
-            cloned.parent = (TreeNode) cloned.parent.clone();
-        }
-        if (cloned.children != null) {
-            cloned.children = (ArrayList<TreeNode>) cloned.children.clone();
-        }
-        return cloned;
     }
 
     private List<Integer> getFreeIds() {

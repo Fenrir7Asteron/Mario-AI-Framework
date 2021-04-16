@@ -118,15 +118,6 @@ public class MCTree implements Cloneable {
         return Utils.availableActions[bestActionId];
     }
 
-    @Override
-    protected Object clone() throws CloneNotSupportedException {
-        MCTree cloned = (MCTree) super.clone();
-        if (cloned._root != null) {
-            cloned._root = (TreeNode) cloned._root.clone();
-        }
-        return cloned;
-    }
-
     boolean checkTreeRoot() {
         return _root != null;
     }

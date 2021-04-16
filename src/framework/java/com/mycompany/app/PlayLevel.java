@@ -20,9 +20,10 @@ import me.tongfei.progressbar.ProgressBar;
 
 public class PlayLevel {
     public static final int DISTANCE_MULTIPLIER = 16;
-    public static final int TIME_FOR_LEVEL = 30;
+    public static final int TIME_FOR_LEVEL = 15;
     public static final int MARIO_START_MODE = 0;
     public static final String LEVEL_DIR = "./levels/original/";
+    public static final int NUMBER_OF_SAMPLES = 100;
     public static final int PLAY_REPETITION_COUNT = 300;
     public static final Boolean VISUALIZATION = true;
     public static final Boolean MULTITHREADED = false;
@@ -99,22 +100,21 @@ public class PlayLevel {
                 var score = result.getCompletionPercentage();
                 var time = (double) result.getRemainingTime() / 1000;
                 agent.addResult(new Score(score, time));
-                progressBar.step();
+//                progressBar.step();
             }));
         } else {
             var result = game.runGame(agent, getLevel(levelName), TIME_FOR_LEVEL, MARIO_START_MODE, VISUALIZATION);
+//            var result = game.runGame(new com.mycompany.app.agents.human.Agent(), getLevel(levelName), TIME_FOR_LEVEL, MARIO_START_MODE, VISUALIZATION);
 //            var score = result.getCompletionPercentage() * levelWidth * DISTANCE_MULTIPLIER;
             var score = result.getCompletionPercentage();
             var time = (double) result.getRemainingTime() / 1000;
-            if (agent instanceof Agent bogdanAgent) {
-                bogdanAgent.addResult(new Score(score, time));
-            }
-            progressBar.step();
+            agent.addResult(new Score(score, time));
+//            progressBar.step();
         }
     }
 
     private static void playListOfLevels(List<PaperAgent> agents, List<String> levels) {
-        progressBar = new ProgressBar("Levels", levels.size());
+//        progressBar = new ProgressBar("Levels", levels.size());
 
         for (var levelPath : levels) {
             for (var agent : agents) {
@@ -159,14 +159,18 @@ public class PlayLevel {
         var time = System.currentTimeMillis();
 
         List<PaperAgent> agents = new ArrayList<>();
-//        agents.add(new com.mycompany.app.agents.bogdanMCTS.Agent());
+        agents.add(new com.mycompany.app.agents.bogdanMCTS.Agent());
         agents.add(new com.mycompany.app.agents.robinBaumgarten.Agent());
 
-//        playAllFolderLevels(agents, LEVEL_DIR);
+        progressBar = new ProgressBar("Samples", NUMBER_OF_SAMPLES);
+        for (int i = 0; i < NUMBER_OF_SAMPLES; ++i) {
+            playAllFolderLevels(agents, GenerateLevel.generateSampleLevels());
+            progressBar.step();
+        }
 
 //        playSingleLevel(agents, "./levels/lvl-killer_plant.txt", PLAY_REPETITION_COUNT);
-//        playSingleLevel(agents, "./levels/original/lvl-3.txt", PLAY_REPETITION_COUNT);
-        playSingleLevel(agents, "./levels/original/lvl-5.txt", PLAY_REPETITION_COUNT);
+//        playSingleLevel(agents, "./levels/original/lvl-1.txt", PLAY_REPETITION_COUNT);
+//        playSingleLevel(agents, "./levels/original/lvl-5.txt", PLAY_REPETITION_COUNT);
 
         if (MULTITHREADED) {
             for (var future : futures) {
@@ -184,7 +188,7 @@ public class PlayLevel {
         System.out.println("Execution time: " + (System.currentTimeMillis() - time));
 
         for (var agent : agents) {
-            agent.outputScores(progressBar.getMax());
+            agent.outputScores((int) progressBar.getMax());
         }
 
         System.exit(0);

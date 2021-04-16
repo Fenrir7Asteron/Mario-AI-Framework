@@ -1,10 +1,10 @@
 package com.mycompany.app.agents.robinBaumgarten;
 
 import com.mycompany.app.agents.bogdanMCTS.PaperAgent;
-import com.mycompany.app.engine.core.MarioAgent;
 import com.mycompany.app.engine.core.MarioForwardModel;
 import com.mycompany.app.engine.core.MarioTimer;
 import com.mycompany.app.engine.helper.MarioActions;
+import com.mycompany.app.utils.FileWriter;
 import com.mycompany.app.utils.Score;
 
 import java.io.FileOutputStream;
@@ -58,22 +58,8 @@ public class Agent implements PaperAgent {
     }
 
     @Override
-    public void outputScores(long levelCount) {
-        var namePrefix = getAgentName() + levelCount;
-
-        try(FileOutputStream fos = new FileOutputStream(DATA_FOLDER + namePrefix + ".txt"))
-        {
-            for (var score : resultScores) {
-                byte[] buffer = (score.toString() + "\n").getBytes();
-
-                fos.write(buffer, 0, buffer.length);
-            }
-        }
-        catch(IOException ex){
-            ex.printStackTrace();
-        }
-
-        System.out.println("--------------------------------------------------------------------");
-        System.out.println("Agent [" + namePrefix + "]: The file has been written");
+    public void outputScores(int numberOfSamples) {
+        var namePrefix = getAgentName() + numberOfSamples;
+        FileWriter.outputScoresToFile(numberOfSamples, resultScores, DATA_FOLDER, namePrefix);
     }
 }

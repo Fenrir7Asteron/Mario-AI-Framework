@@ -58,13 +58,4 @@ class TreeNodeData implements Cloneable {
         this.isPruned = false;
         this.scheduledExpansions = 0;
     }
-
-    @Override
-    protected Object clone() throws CloneNotSupportedException {
-        TreeNodeData cloned = (TreeNodeData) super.clone();
-        if (cloned.sceneSnapshot != null) {
-            cloned.sceneSnapshot = cloned.sceneSnapshot.clone();
-        }
-        return cloned;
-    }
 }

@@ -7,6 +7,9 @@ import com.mycompany.app.engine.core.MarioTimer;
 import com.mycompany.app.engine.helper.GameStatus;
 
 public class AStarTree {
+    private static final boolean DETERMINISTIC = true;
+    private static final int MAX_SEARCH_ITERATIONS = 100;
+
     public SearchNode bestPosition;
     public SearchNode furthestPosition;
     float currentSearchStartingMarioXPos;
@@ -21,9 +24,17 @@ public class AStarTree {
         SearchNode current = bestPosition;
         boolean currentGood = false;
         int maxRight = 176;
-        while (posPool.size() != 0
-                && ((bestPosition.sceneSnapshot.getMarioFloatPos()[0] - currentSearchStartingMarioXPos < maxRight) || !currentGood)
-                && timer.getRemainingTime() > 0) {
+        int iterationsCounter = 0;
+
+        while ((posPool.size() != 0
+                && ((bestPosition.sceneSnapshot.getMarioFloatPos()[0] - currentSearchStartingMarioXPos < maxRight) || !currentGood))
+                && (timer.getRemainingTime() > 0 || DETERMINISTIC)) {
+
+            ++iterationsCounter;
+            if (DETERMINISTIC && iterationsCounter > MAX_SEARCH_ITERATIONS) {
+                break;
+            }
+
             current = pickBestPos(posPool);
             if (current == null) {
                 return null;
@@ -56,6 +67,7 @@ public class AStarTree {
                     furthestPosition = current;
             }
         }
+
         if (current.sceneSnapshot.getMarioFloatPos()[0] - currentSearchStartingMarioXPos < maxRight
                 && furthestPosition.sceneSnapshot.getMarioFloatPos()[0] > bestPosition.sceneSnapshot.getMarioFloatPos()[0] + 20)
             // Couldnt plan till end of screen, take furthest
