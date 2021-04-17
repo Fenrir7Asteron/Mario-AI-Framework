@@ -84,10 +84,10 @@ public class TreeNode implements Cloneable {
     }
 
     public TreeNode getBestChild(boolean explore) {
-        TreeNode best = children.get(0);
-        double maxConfidence = best.calcConfidence(explore);
+        TreeNode best = children.get(RNG.nextInt(children.size()));
+        double maxConfidence = MCTree.MIN_REWARD - 1;
 
-        for (int i = 1; i < children.size(); ++i) {
+        for (int i = 0; i < children.size(); ++i) {
             var child = children.get(i);
             if (child.isPruned()) {
                 continue;
@@ -278,16 +278,6 @@ public class TreeNode implements Cloneable {
     }
 
     public void updateReward(double reward) {
-        if (MCTree.getEnhancements().contains(MCTree.Enhancement.AGING)) {
-//            data.maxReward -= (data.maxReward - MCTree.BASE_REWARD) * MCTree.AGE_WEIGHT_PER_STEP;
-//            data.maxReward *= (1 - MCTree.AGE_WEIGHT_PER_STEP);
-//            System.out.println("BEFORE: " + data.totalReward);
-            data.totalReward -= (data.totalReward - MCTree.BASE_REWARD * getVisitCountComplete()) * MCTree.AGE_DECAY;
-            data.visitCountIncomplete *= (1 - MCTree.AGE_DECAY);
-            data.visitCount *= (1 - MCTree.AGE_DECAY);
-//            data.totalReward *= (1 - MCTree.AGE_WEIGHT_PER_STEP);
-//            System.out.println("AFTER: " + data.totalReward);
-        }
 
         if (!MCTree.getEnhancements().contains(MCTree.Enhancement.WU_UCT)) {
             data.visitCount++;
@@ -298,6 +288,17 @@ public class TreeNode implements Cloneable {
         data.totalReward += reward;
         data.maxReward = Math.max(data.maxReward, reward);
         data.averageReward = data.totalReward / getVisitCountComplete();
+    }
+
+    public void ageDecaySubtree() {
+//        data.totalReward -= (data.totalReward - MCTree.BASE_REWARD * getVisitCountComplete()) * MCTree.AGE_DECAY;
+        data.totalReward *= (1 - MCTree.AGE_DECAY);
+        data.visitCountIncomplete *= (1 - MCTree.AGE_DECAY);
+        data.visitCount *= (1 - MCTree.AGE_DECAY);
+
+        for (TreeNode child : children) {
+            child.ageDecaySubtree();
+        }
     }
 
     public void pullSnapshotFromParent() {

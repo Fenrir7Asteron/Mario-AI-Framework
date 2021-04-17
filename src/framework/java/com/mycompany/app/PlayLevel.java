@@ -160,7 +160,7 @@ public class PlayLevel {
 
         List<PaperAgent> agents = new ArrayList<>();
         agents.add(new com.mycompany.app.agents.bogdanMCTS.Agent());
-        agents.add(new com.mycompany.app.agents.robinBaumgarten.Agent());
+//        agents.add(new com.mycompany.app.agents.robinBaumgarten.Agent());
 
         progressBar = new ProgressBar("Samples", NUMBER_OF_SAMPLES);
         for (int i = 0; i < NUMBER_OF_SAMPLES; ++i) {
@@ -170,7 +170,7 @@ public class PlayLevel {
 
 //        playSingleLevel(agents, "./levels/lvl-killer_plant.txt", PLAY_REPETITION_COUNT);
 //        playSingleLevel(agents, "./levels/original/lvl-1.txt", PLAY_REPETITION_COUNT);
-//        playSingleLevel(agents, "./levels/original/lvl-5.txt", PLAY_REPETITION_COUNT);
+//        playSingleLevel(agents, "./levels/original/lvl-4.txt", PLAY_REPETITION_COUNT);
 
         if (MULTITHREADED) {
             for (var future : futures) {

@@ -4,15 +4,12 @@ import com.mycompany.app.agents.bogdanMCTS.MCTree;
 import com.mycompany.app.agents.bogdanMCTS.NodeInternals.NodeBuilder;
 import com.mycompany.app.agents.bogdanMCTS.NodeInternals.TreeNode;
 import com.mycompany.app.agents.bogdanMCTS.Utils;
-import com.mycompany.app.utils.ThreadPool;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 public class LossAvoidance {
+    private static final int NUMBER_OF_MOVES_REPLACE = 2;
+
     public static MCTree.SimulationResult AvoidLoss(LinkedList<Integer> moveHistory, TreeNode sourceNode, int currentDepth) {
         var sourceSnapshot = sourceNode.getSceneSnapshot();
 
@@ -22,7 +19,15 @@ public class LossAvoidance {
                 null,
                 sourceNode.getTree(),
                 sourceSnapshot.clone());
-        moveHistory.removeLast();
+
+        int loseAction = -1;
+        int numberOfMovesToReplace = 0;
+
+        while (numberOfMovesToReplace < moveHistory.size()
+                && numberOfMovesToReplace < NUMBER_OF_MOVES_REPLACE) {
+            loseAction = moveHistory.removeLast();
+            numberOfMovesToReplace++;
+        }
         lossAvoidingSimulationNode.makeMoves(moveHistory);
 
         double maxReward = MCTree.MIN_REWARD - 1;
@@ -50,18 +55,25 @@ public class LossAvoidance {
 //        }
 
         for (int moveId = 0; moveId < Utils.availableActions.length; ++moveId) {
+            if (moveId == loseAction) {
+                continue;
+            }
+
             TreeNode nodeVariant = NodeBuilder.allocateNode(
                     -1,
                     null,
                     sourceNode.getTree(),
                     lossAvoidingSimulationNode.getSceneSnapshot().clone());
-            nodeVariant.makeMove(Utils.availableActions[moveId]);
+
+            nodeVariant.makeMove(Utils.availableActions[moveId], numberOfMovesToReplace);
             double reward = Utils.calcReward(sourceSnapshot, nodeVariant.getSceneSnapshot(), currentDepth);
             if (reward > maxReward) {
-                reward = maxReward;
+                maxReward = reward;
                 bestActionId = moveId;
             }
         }
+
+        System.out.println(maxReward);
 
         moveHistory.add(bestActionId);
         return new MCTree.SimulationResult(maxReward, moveHistory);

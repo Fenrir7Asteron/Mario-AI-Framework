@@ -7,7 +7,7 @@ import com.mycompany.app.engine.core.MarioTimer;
 import com.mycompany.app.engine.helper.GameStatus;
 
 public class AStarTree {
-    private static final boolean DETERMINISTIC = true;
+    private static final boolean DETERMINISTIC = false;
     private static final int MAX_SEARCH_ITERATIONS = 100;
 
     public SearchNode bestPosition;

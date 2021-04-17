@@ -13,13 +13,13 @@ public class MCTree implements Cloneable {
     public static final double PROGRESS_WEIGHT = 0.5;
     public static final double BASE_REWARD = 0.5;
     public static final double DAMAGE_WEIGHT = 0.5;
-    public static final double AGE_DECAY = 0.01;
+    public static final double AGE_DECAY = 1;
     public static final double PATH_LENGTH_WEIGHT = 0.5;
     public static final float MAX_REWARD = 1.0f;
     public static final float MIN_REWARD = 0.0f;
 
     public final static int MAX_TREE_DEPTH = 1000;
-    public final static int MAX_SIMULATION_DEPTH = 8;
+    public final static int MAX_SIMULATION_DEPTH = 6;
     public final static double EXPLORATION_FACTOR = 0.188f;
     public final static boolean DETERMINISTIC = false;
     public final static int SEARCH_REPETITIONS = 100;
@@ -106,15 +106,30 @@ public class MCTree implements Cloneable {
         }
 
         TreeNode bestNode = _root.getBestChild(false);
-        int bestActionId = bestNode.getActionId();
+
+        int bestActionId;
+        if (bestNode != null) {
+            bestActionId = bestNode.getActionId();
+        } else {
+            bestActionId = _root.getRandomMove();
+        }
+
         if (!MCTree.enhancements.contains(Enhancement.TREE_REUSE)) {
             _root.clearSubTree();
         } else {
-            // By detaching the best node from tree it and it's subtree are not cleared.
-            bestNode.detachFromTree();
-            _root.clearSubTree();
+            if (bestNode != null) {
+                // By detaching the best node from tree it and it's subtree are not cleared.
+                bestNode.detachFromTree();
+                _root.clearSubTree();
+
+                if (MCTree.getEnhancements().contains(MCTree.Enhancement.AGING)) {
+                    bestNode.ageDecaySubtree();
+                }
+            }
+
             _root = bestNode;
         }
+
         return Utils.availableActions[bestActionId];
     }
 

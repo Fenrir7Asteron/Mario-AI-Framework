@@ -3,8 +3,9 @@
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
-from scipy.stats import wilcoxon
+from scipy.stats import ttest_ind
 from matplotlib import pyplot
+import numpy as np
 
 
 DATA_FOLDER = "../../data/"
@@ -15,9 +16,11 @@ def read_observations(file_path):
         observations = []
         for line in inp_file.readlines():
             sample = [float(member) for member in line.strip().split()]
-            print(sample)
+            mean = np.array(sample).mean()
+            print(mean)
+            observations.append(mean)
 
-        return observations
+        return np.array(observations)
 
 
 def test_for_identity(observations1, observations2):
@@ -41,6 +44,6 @@ if __name__ == '__main__':
     pyplot.hist(observations1, color="r")
     pyplot.hist(observations2, color="b")
     pyplot.show()
-    test_for_identity(observations1, observations2)
+    print(ttest_ind(observations1, observations2))
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
