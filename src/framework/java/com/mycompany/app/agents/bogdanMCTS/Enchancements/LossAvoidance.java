@@ -73,8 +73,6 @@ public class LossAvoidance {
             }
         }
 
-        System.out.println(maxReward);
-
         moveHistory.add(bestActionId);
         return new MCTree.SimulationResult(maxReward, moveHistory);
     }

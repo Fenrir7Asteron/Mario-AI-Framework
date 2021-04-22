@@ -54,6 +54,10 @@ public class MCTree implements Cloneable {
         return enhancements;
     }
 
+    public static void setEnhancements(int enhancementMask) {
+        enhancements = enhancementMask;
+    }
+
     public NGramSelection getNGramSelection() {
         return _nGramSelection;
     }

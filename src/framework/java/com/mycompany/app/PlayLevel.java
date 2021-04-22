@@ -6,12 +6,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import com.mycompany.app.agents.bogdanMCTS.Agent;
-import com.mycompany.app.agents.bogdanMCTS.NodeInternals.NodeBuilder;
+import com.mycompany.app.agents.bogdanMCTS.MCTSEnhancements;
+import com.mycompany.app.agents.bogdanMCTS.MCTree;
 import com.mycompany.app.agents.bogdanMCTS.PaperAgent;
 import com.mycompany.app.engine.core.*;
 import com.mycompany.app.utils.Score;
@@ -20,10 +21,10 @@ import me.tongfei.progressbar.ProgressBar;
 
 public class PlayLevel {
     public static final int DISTANCE_MULTIPLIER = 16;
-    public static final int TIME_FOR_LEVEL = 15;
+    public static final int TIME_FOR_LEVEL = 2;
     public static final int MARIO_START_MODE = 0;
     public static final String LEVEL_DIR = "./levels/original/";
-    public static final int NUMBER_OF_SAMPLES = 100;
+    public static final int NUMBER_OF_SAMPLES = 1;
     public static final int PLAY_REPETITION_COUNT = 300;
     public static final Boolean VISUALIZATION = true;
     public static final Boolean MULTITHREADED = false;
@@ -160,17 +161,37 @@ public class PlayLevel {
 
         List<PaperAgent> agents = new ArrayList<>();
         agents.add(new com.mycompany.app.agents.bogdanMCTS.Agent());
-//        agents.add(new com.mycompany.app.agents.robinBaumgarten.Agent());
+        agents.add(new com.mycompany.app.agents.robinBaumgarten.Agent());
 
-        progressBar = new ProgressBar("Samples", NUMBER_OF_SAMPLES);
-        for (int i = 0; i < NUMBER_OF_SAMPLES; ++i) {
-            playAllFolderLevels(agents, GenerateLevel.generateSampleLevels());
-            progressBar.step();
+        HashSet<Integer> availableEnhancementMasks = MCTSEnhancements.AvailableEnhancementMasks();
+        System.out.println("Available MCTS enhancements variants: "
+                + availableEnhancementMasks.size());
+
+        for (int mctsEnhancementMask : availableEnhancementMasks) {
+            PlayAllSamples(time, agents, mctsEnhancementMask);
         }
 
 //        playSingleLevel(agents, "./levels/lvl-killer_plant.txt", PLAY_REPETITION_COUNT);
 //        playSingleLevel(agents, "./levels/original/lvl-1.txt", PLAY_REPETITION_COUNT);
 //        playSingleLevel(agents, "./levels/original/lvl-4.txt", PLAY_REPETITION_COUNT);
+
+        System.exit(0);
+    }
+
+    private static void PlayAllSamples(long time, List<PaperAgent> agents, int mctsEnhancementMask) {
+        for (PaperAgent agent : agents) {
+            if (agent instanceof com.mycompany.app.agents.bogdanMCTS.Agent
+                    enhancedMCTSAgent) {
+                enhancedMCTSAgent.setEnhancements(mctsEnhancementMask);
+            }
+        }
+
+        progressBar = new ProgressBar("Samples", NUMBER_OF_SAMPLES);
+
+        for (int i = 0; i < NUMBER_OF_SAMPLES; ++i) {
+            playAllFolderLevels(agents, GenerateLevel.generateSampleLevels());
+            progressBar.step();
+        }
 
         if (MULTITHREADED) {
             for (var future : futures) {
@@ -188,9 +209,9 @@ public class PlayLevel {
         System.out.println("Execution time: " + (System.currentTimeMillis() - time));
 
         for (var agent : agents) {
-            agent.outputScores((int) progressBar.getMax());
+            agent.outputScores((int) progressBar.getMax(), mctsEnhancementMask);
         }
 
-        System.exit(0);
+        progressBar.close();
     }
 }

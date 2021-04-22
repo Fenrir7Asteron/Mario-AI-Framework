@@ -7,8 +7,6 @@ import com.mycompany.app.engine.helper.MarioActions;
 import com.mycompany.app.utils.FileWriter;
 import com.mycompany.app.utils.Score;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 
 import static com.mycompany.app.utils.MyMath.average;
@@ -58,7 +56,7 @@ public class Agent implements PaperAgent {
     }
 
     @Override
-    public void outputScores(int numberOfSamples) {
+    public void outputScores(int numberOfSamples, int enhancements) {
         var namePrefix = getAgentName() + numberOfSamples;
         FileWriter.outputScoresToFile(numberOfSamples, resultScores, DATA_FOLDER, namePrefix);
     }

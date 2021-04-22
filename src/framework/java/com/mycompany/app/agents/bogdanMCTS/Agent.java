@@ -41,7 +41,7 @@ public class Agent implements PaperAgent {
                         Enhancement.AGING,
                 });
 
-        tree = new MCTree(model, 1, enhancements);
+        tree = new MCTree(model, 1, 0);
     }
 
     @Override
@@ -77,9 +77,16 @@ public class Agent implements PaperAgent {
     }
 
     @Override
-    public void outputScores(int numberOfSamples) {
-        String namePrefix = getAgentName() + numberOfSamples + MCTSEnhancements.enhancementsToString(MCTree.enhancements);
+    public void outputScores(int numberOfSamples, int enhancements) {
+        String namePrefix = getAgentName()
+                + numberOfSamples
+                + MCTSEnhancements.enhancementsToString(enhancements);
+
         FileWriter.outputScoresToFile(numberOfSamples, resultScores, DATA_FOLDER, namePrefix);
+    }
+
+    public void setEnhancements(int enhancementMask) {
+        MCTree.setEnhancements(enhancementMask);
     }
 
     //    @Override

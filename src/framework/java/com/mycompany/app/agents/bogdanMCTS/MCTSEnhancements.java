@@ -1,5 +1,8 @@
 package com.mycompany.app.agents.bogdanMCTS;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+
 public class MCTSEnhancements {
     public enum Enhancement {
         MIXMAX,
@@ -13,12 +16,16 @@ public class MCTSEnhancements {
         N_GRAM_SELECTION,
     }
 
+    public static HashSet<Integer> AvailableEnhancementMasks() {
+        return findAvailableMasksRecursively(new HashSet<>(), 0, 0);
+    }
+
     public static String enhancementsToString(int enhancementsMask) {
         StringBuilder shortNames = new StringBuilder();
 
         for (Enhancement enhancement : Enhancement.values()) {
             if (MaskContainsEnhancement(enhancementsMask, enhancement)) {
-                shortNames.append("+").append(enhancement.toString(), 0, 2);
+                shortNames.append("+").append(enhancement.toString(), 0, 3);
             }
 
 //            switch (enhancement) {
@@ -52,6 +59,10 @@ public class MCTSEnhancements {
         return (enhancementMask & (1 << enhancement.ordinal())) != 0;
     }
 
+    public static boolean MaskContainsEnhancements(int enhancementMask, Enhancement[] enhancements) {
+        return (enhancementMask & AddEnhancements(0, enhancements)) != 0;
+    }
+
     public static int AddEnhancement(int enhancementMask, Enhancement enhancement) {
         return enhancementMask | (1 << enhancement.ordinal());
     }
@@ -62,5 +73,48 @@ public class MCTSEnhancements {
         }
 
         return enhancementMask;
+    }
+
+    public static int RemoveEnhancement(int enhancementMask, Enhancement enhancement) {
+        return enhancementMask & (~(1 << enhancement.ordinal()));
+    }
+
+    private static HashSet<Integer> findAvailableMasksRecursively(
+            HashSet<Integer> masks, int currentMask, int enhancementIdx) {
+
+        if (enhancementIdx >= Enhancement.values().length
+                || !maskValid(currentMask)) {
+            return masks;
+        }
+
+        masks.add(currentMask);
+
+        // Add enhancement in current index.
+        findAvailableMasksRecursively(
+                masks,
+                AddEnhancement(currentMask, Enhancement.values()[enhancementIdx]),
+                enhancementIdx + 1
+        );
+
+        // Not add enhancement in current index.
+        findAvailableMasksRecursively(masks, currentMask, enhancementIdx + 1);
+
+        return masks;
+    }
+
+    private static boolean maskValid(int enhancementMask) {
+        if (MaskContainsEnhancements(enhancementMask, new Enhancement[] {
+                Enhancement.PARTIAL_EXPANSION,
+                Enhancement.HARD_PRUNING,
+        })) {
+            return false;
+        }
+
+        if (MaskContainsEnhancement(enhancementMask, Enhancement.AGING)
+                && !MaskContainsEnhancement(enhancementMask, Enhancement.TREE_REUSE)){
+            return false;
+        }
+
+        return true;
     }
 }
