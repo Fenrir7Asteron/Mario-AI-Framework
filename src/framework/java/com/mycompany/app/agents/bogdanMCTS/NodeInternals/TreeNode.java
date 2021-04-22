@@ -1,6 +1,7 @@
 package com.mycompany.app.agents.bogdanMCTS.NodeInternals;
 
 import com.mycompany.app.agents.bogdanMCTS.Enchancements.MixMax;
+import com.mycompany.app.agents.bogdanMCTS.MCTSEnhancements;
 import com.mycompany.app.agents.bogdanMCTS.MCTree;
 import com.mycompany.app.utils.RNG;
 import com.mycompany.app.agents.bogdanMCTS.Utils;
@@ -202,7 +203,8 @@ public class TreeNode implements Cloneable {
         float nj = getVisitCount();
 
         double exploitation;
-        if (MCTree.getEnhancements().contains(MCTree.Enhancement.MIXMAX)) {
+        if (MCTSEnhancements.MaskContainsEnhancement(MCTree.getEnhancements(),
+                MCTSEnhancements.Enhancement.MIXMAX)) {
             exploitation = MixMax.getExploitation(data.averageReward, data.maxReward);
         } else {
             exploitation = data.averageReward;
@@ -279,7 +281,8 @@ public class TreeNode implements Cloneable {
 
     public void updateReward(double reward) {
 
-        if (!MCTree.getEnhancements().contains(MCTree.Enhancement.WU_UCT)) {
+        if (!MCTSEnhancements.MaskContainsEnhancement(MCTree.getEnhancements(),
+                MCTSEnhancements.Enhancement.WU_UCT)) {
             data.visitCount++;
         } else {
             incrementCompleteVisitCount();

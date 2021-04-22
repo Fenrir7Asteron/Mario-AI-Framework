@@ -1,5 +1,6 @@
 package com.mycompany.app.agents.bogdanMCTS.Enchancements;
 
+import com.mycompany.app.agents.bogdanMCTS.MCTSEnhancements;
 import com.mycompany.app.agents.bogdanMCTS.MCTree;
 import com.mycompany.app.agents.bogdanMCTS.NodeInternals.TreeNode;
 import com.mycompany.app.agents.bogdanMCTS.Utils;
@@ -43,7 +44,8 @@ public class WU_UCT {
 
                 var nodeToExpand = _expansionTaskRecorder.get(task);
 
-                if (MCTree.getEnhancements().contains(MCTree.Enhancement.PARTIAL_EXPANSION)) {
+                if (MCTSEnhancements.MaskContainsEnhancement(MCTree.getEnhancements(),
+                        MCTSEnhancements.Enhancement.PARTIAL_EXPANSION)) {
                     int prevScheduledExpansionCount = nodeToExpand.getScheduledExpansions();
                     nodeToExpand.setScheduledExpansions(prevScheduledExpansionCount + 1);
                 } else {
@@ -125,7 +127,8 @@ public class WU_UCT {
             int task = simulationWorkerResult.getSecond();
             var simulatedNode = _simulationTaskRecorder.get(task);
 
-            if (MCTree.getEnhancements().contains(MCTree.Enhancement.N_GRAM_SELECTION)) {
+            if (MCTSEnhancements.MaskContainsEnhancement(MCTree.getEnhancements(),
+                    MCTSEnhancements.Enhancement.N_GRAM_SELECTION)) {
                 simulatedNode.getTree().getNGramSelection().updateRewards(
                         simulationResult.moveHistory,
                         simulationResult.reward

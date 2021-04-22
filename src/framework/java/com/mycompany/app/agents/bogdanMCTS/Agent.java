@@ -1,13 +1,11 @@
 package com.mycompany.app.agents.bogdanMCTS;
 
-import com.mycompany.app.agents.bogdanMCTS.MCTree.Enhancement;
+import com.mycompany.app.agents.bogdanMCTS.MCTSEnhancements.Enhancement;
 import com.mycompany.app.engine.core.MarioForwardModel;
 import com.mycompany.app.engine.core.MarioTimer;
 import com.mycompany.app.utils.FileWriter;
 import com.mycompany.app.utils.Score;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.*;
 
 import static com.mycompany.app.utils.MyMath.average;
@@ -30,16 +28,19 @@ public class Agent implements PaperAgent {
 
     @Override
     public void initialize(MarioForwardModel model, MarioTimer timer) {
-        HashSet<Enhancement> enhancements = new HashSet<>();
-        enhancements.add(Enhancement.MIXMAX);
-//        enhancements.add(Enhancement.PARTIAL_EXPANSION);
-        enhancements.add(Enhancement.TREE_REUSE);
-//        enhancements.add(Enhancement.LOSS_AVOIDANCE);
-//        enhancements.add(Enhancement.HARD_PRUNING);
-//        enhancements.add(Enhancement.SAFETY_PREPRUNING);
-        enhancements.add(Enhancement.WU_UCT);
-        enhancements.add(Enhancement.AGING);
-//        enhancements.add(Enhancement.N_GRAM_SELECTION);
+        int enhancements = 0;
+        enhancements = MCTSEnhancements.AddEnhancements(enhancements,
+                new Enhancement[] {
+                        Enhancement.MIXMAX,
+//                        Enhancement.PARTIAL_EXPANSION,
+                        Enhancement.TREE_REUSE,
+                        Enhancement.LOSS_AVOIDANCE,
+                        Enhancement.HARD_PRUNING,
+                        Enhancement.SAFETY_PREPRUNING,
+                        Enhancement.WU_UCT,
+                        Enhancement.AGING,
+                });
+
         tree = new MCTree(model, 1, enhancements);
     }
 
@@ -77,42 +78,11 @@ public class Agent implements PaperAgent {
 
     @Override
     public void outputScores(int numberOfSamples) {
-        String namePrefix = getAgentName() + numberOfSamples + enhancementsToString();
+        String namePrefix = getAgentName() + numberOfSamples + MCTSEnhancements.enhancementsToString(MCTree.enhancements);
         FileWriter.outputScoresToFile(numberOfSamples, resultScores, DATA_FOLDER, namePrefix);
     }
 
-    private String enhancementsToString() {
-        StringBuilder shortNames = new StringBuilder();
-
-        for (var enhancement : MCTree.enhancements) {
-            switch (enhancement) {
-                case MIXMAX:
-                    shortNames.append("+MM");
-                    break;
-                case TREE_REUSE:
-                    shortNames.append("+TR");
-                    break;
-                case HARD_PRUNING:
-                    shortNames.append("+HP");
-                    break;
-                case LOSS_AVOIDANCE:
-                    shortNames.append("+LA");
-                    break;
-                case PARTIAL_EXPANSION:
-                    shortNames.append("+PA");
-                    break;
-                case SAFETY_PREPRUNING:
-                    shortNames.append("+SP");
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        return shortNames.toString();
-    }
-
-//    @Override
+    //    @Override
 //    public void setHyperParameters(HashMap<Integer, Number> hyperParameters) {
 //        for (var hp : Hyperparameter.values()) {
 //            if (!hyperParameters.containsKey(hp.ordinal())) {
