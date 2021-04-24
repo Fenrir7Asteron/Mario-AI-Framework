@@ -60,4 +60,10 @@ public class Agent implements PaperAgent {
         var namePrefix = getAgentName() + numberOfSamples;
         FileWriter.outputScoresToFile(numberOfSamples, resultScores, DATA_FOLDER, namePrefix);
     }
+
+    @Override
+    public void clearScores() {
+        resultScores.clear();
+        resultTimes.clear();
+    }
 }

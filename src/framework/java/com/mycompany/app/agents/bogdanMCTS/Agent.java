@@ -28,20 +28,7 @@ public class Agent implements PaperAgent {
 
     @Override
     public void initialize(MarioForwardModel model, MarioTimer timer) {
-        int enhancements = 0;
-        enhancements = MCTSEnhancements.AddEnhancements(enhancements,
-                new Enhancement[] {
-                        Enhancement.MIXMAX,
-//                        Enhancement.PARTIAL_EXPANSION,
-                        Enhancement.TREE_REUSE,
-                        Enhancement.LOSS_AVOIDANCE,
-                        Enhancement.HARD_PRUNING,
-                        Enhancement.SAFETY_PREPRUNING,
-                        Enhancement.WU_UCT,
-                        Enhancement.AGING,
-                });
-
-        tree = new MCTree(model, 1, 0);
+        tree = new MCTree(model, 1);
     }
 
     @Override
@@ -83,6 +70,12 @@ public class Agent implements PaperAgent {
                 + MCTSEnhancements.enhancementsToString(enhancements);
 
         FileWriter.outputScoresToFile(numberOfSamples, resultScores, DATA_FOLDER, namePrefix);
+    }
+
+    @Override
+    public void clearScores() {
+        resultScores.clear();
+        resultTimes.clear();
     }
 
     public void setEnhancements(int enhancementMask) {

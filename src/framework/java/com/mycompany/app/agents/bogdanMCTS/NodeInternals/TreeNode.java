@@ -7,6 +7,7 @@ import com.mycompany.app.utils.RNG;
 import com.mycompany.app.agents.bogdanMCTS.Utils;
 import com.mycompany.app.engine.core.MarioForwardModel;
 import com.mycompany.app.engine.helper.GameStatus;
+import com.sun.source.tree.Tree;
 
 import java.util.*;
 
@@ -134,14 +135,41 @@ public class TreeNode implements Cloneable {
     public synchronized TreeNode expandAll() {
         // Expand node to all possible actions
         var freeIds = getFreeIds();
+        TreeNode nodeToSimulate = null;
         for (var newId : freeIds) {
             TreeNode child = NodeBuilder.allocateNode(newId, this, tree, null);
             child.simulatePos();
             children.add(child);
+
+            if (nodeToSimulate == null && !child.isPruned()) {
+                nodeToSimulate = child;
+            }
+        }
+
+        if (nodeToSimulate == null || nodeToSimulate.isPruned()) {
+            nodeToSimulate = AvoidLoss(nodeToSimulate);
         }
 
         // Return random node among expands
-        return children.get(RNG.nextInt(children.size()));
+        return nodeToSimulate;
+    }
+
+    private TreeNode AvoidLoss(TreeNode nodeToSimulate) {
+        ArrayList<TreeNode> childrenShuffled = (ArrayList<TreeNode>) children.clone();
+        Collections.shuffle(childrenShuffled);
+
+        for (var child : childrenShuffled) {
+            if (!child.isPruned()) {
+                nodeToSimulate = child;
+                break;
+            }
+        }
+
+        if (nodeToSimulate == null && childrenShuffled.size() > 0) {
+            nodeToSimulate = childrenShuffled.get(0);
+        }
+
+        return nodeToSimulate;
     }
 
     public synchronized TreeNode expandOne() {
@@ -151,11 +179,21 @@ public class TreeNode implements Cloneable {
             TreeNode child = NodeBuilder.allocateNode(newId, this, tree, null);
             child.simulatePos();
             children.add(child);
-            return child;
-        } else {
 
+            TreeNode nodeToSimulate = child;
+            if (nodeToSimulate.isPruned()) {
+                nodeToSimulate = AvoidLoss(nodeToSimulate);
+            }
+
+            return nodeToSimulate;
+        } else {
             // Return random node among expands
-            return children.get(RNG.nextInt(children.size()));
+            TreeNode nodeToSimulate = children.get(RNG.nextInt(children.size()));
+            if (nodeToSimulate.isPruned()) {
+                nodeToSimulate = AvoidLoss(nodeToSimulate);
+            }
+
+            return nodeToSimulate;
         }
     }
 
@@ -182,6 +220,10 @@ public class TreeNode implements Cloneable {
                 if (Utils.availableActions.length > data.actionId) {
                     data.sceneSnapshot.advance(Utils.availableActions[data.actionId]);
                 }
+            }
+
+            if (isLost()) {
+                prune();
             }
         }
     }

@@ -13,7 +13,7 @@ public class MCTree implements Cloneable {
     public static final double PROGRESS_WEIGHT = 0.5;
     public static final double BASE_REWARD = 0.5;
     public static final double DAMAGE_WEIGHT = 0.5;
-    public static final double AGE_DECAY = 1;
+    public static final double AGE_DECAY = 0.02;
     public static final double PATH_LENGTH_WEIGHT = 0.5;
     public static final float MAX_REWARD = 1.0f;
     public static final float MIN_REWARD = 0.0f;
@@ -30,9 +30,8 @@ public class MCTree implements Cloneable {
     private WU_UCT _wuUct = null;
     private NGramSelection _nGramSelection = null;
 
-    MCTree(MarioForwardModel model, int repetitions, int enhancements) {
+    MCTree(MarioForwardModel model, int repetitions) {
         MCTree.repetitions = repetitions;
-        MCTree.enhancements = enhancements;
         initializeRoot(model);
         _wuUct = new WU_UCT();
         _nGramSelection = new NGramSelection();
@@ -220,9 +219,8 @@ public class MCTree implements Cloneable {
     }
 
     public SimulationResult simulate(TreeNode sourceNode) {
-        if (sourceNode.isLost()) {
-            sourceNode.prune();
-            return new SimulationResult(MIN_REWARD);
+        if (sourceNode.isPruned()) {
+            return new SimulationResult(MIN_REWARD, new LinkedList<>());
         }
 
         var sourceSnapshot = sourceNode.getSceneSnapshot();
@@ -274,7 +272,28 @@ public class MCTree implements Cloneable {
                     MCTSEnhancements.Enhancement.HARD_PRUNING)) {
                 HardPruning.tryPruneChildren(currentNode);
             }
+
+            PruneIfAllChildrenAreHardPruned(currentNode);
+
             currentNode = currentNode.getParent();
+        }
+    }
+
+    private static void PruneIfAllChildrenAreHardPruned(TreeNode currentNode) {
+        if (currentNode.getChildrenSize() < Utils.availableActions.length) {
+            return;
+        }
+
+        boolean allChildrenArePruned = true;
+
+        for (TreeNode child : currentNode.getChildren()) {
+            if (!child.isPruned()) {
+                allChildrenArePruned = false;
+            }
+        }
+
+        if (allChildrenArePruned) {
+            currentNode.prune();
         }
     }
 

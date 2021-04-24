@@ -12,7 +12,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import com.mycompany.app.agents.bogdanMCTS.MCTSEnhancements;
-import com.mycompany.app.agents.bogdanMCTS.MCTree;
 import com.mycompany.app.agents.bogdanMCTS.PaperAgent;
 import com.mycompany.app.engine.core.*;
 import com.mycompany.app.utils.Score;
@@ -21,13 +20,13 @@ import me.tongfei.progressbar.ProgressBar;
 
 public class PlayLevel {
     public static final int DISTANCE_MULTIPLIER = 16;
-    public static final int TIME_FOR_LEVEL = 2;
+    public static final int TIME_FOR_LEVEL = 15;
     public static final int MARIO_START_MODE = 0;
-    public static final String LEVEL_DIR = "./levels/original/";
+    public static final String LEVEL_DIR = "./levels/thesisTestLevels100/";
     public static final int NUMBER_OF_SAMPLES = 1;
     public static final int PLAY_REPETITION_COUNT = 300;
-    public static final Boolean VISUALIZATION = true;
-    public static final Boolean MULTITHREADED = false;
+    public static final Boolean VISUALIZATION = false;
+    public static final Boolean MULTITHREADED = true;
 
     private static ArrayList<Future<?>> futures = new ArrayList<>();
     private static ProgressBar progressBar;
@@ -114,17 +113,15 @@ public class PlayLevel {
         }
     }
 
-    private static void playListOfLevels(List<PaperAgent> agents, List<String> levels) {
+    private static void playListOfLevels(PaperAgent agent, List<String> levels) {
 //        progressBar = new ProgressBar("Levels", levels.size());
 
         for (var levelPath : levels) {
-            for (var agent : agents) {
-                playLevel(agent, levelPath);
-            }
+            playLevel(agent, levelPath);
         }
     }
 
-    private static void playAllFolderLevels(List<PaperAgent> agents, final String levelFolder) {
+    private static void playAllFolderLevels(PaperAgent agent, final String levelFolder) {
         // Play all levels from a level folder
         ArrayList<String> levels = new ArrayList<>();
         try {
@@ -134,42 +131,49 @@ public class PlayLevel {
             e.printStackTrace();
         }
 
-        playListOfLevels(agents, levels);
+        playListOfLevels(agent, levels);
     }
 
-    private static void playSingleLevel(List<PaperAgent> agents, final String levelPath, final int playRepetitionCount) {
+    private static void playSingleLevel(PaperAgent agent, final String levelPath, final int playRepetitionCount) {
         progressBar = new ProgressBar("Repetitions", playRepetitionCount);
 
         for (int i = 0; i < playRepetitionCount; ++i) {
-            for (var agent : agents) {
 //                NodePool.createPool();
-                playLevel(agent, levelPath);
-            }
+            playLevel(agent, levelPath);
         }
     }
 
-    private static void printStatistics(List<PaperAgent> agents) {
-        for (var agent : agents) {
-            System.out.println("--------------------------------------------------------------------");
-            System.out.println("Average score for " + agent.getAgentName() + ": " + agent.averageScore());
-            System.out.println("Average time left for " + agent.getAgentName() + ": " + agent.averageTime());
-        }
+    private static void printStatistics(PaperAgent agent, long time) {
+        System.out.println("--------------------------------------------------------------------");
+        System.out.println("Average score for " + agent.getAgentName() + ": " + agent.averageScore());
+//        System.out.println("Average time left for " + agent.getAgentName() + ": " + agent.averageTime());
+        System.out.println("--------------------------------------------------------------------");
+        System.out.println("Execution time: " + (System.currentTimeMillis() - time));
     }
 
     public static void main(String[] args) {
         var time = System.currentTimeMillis();
 
-        List<PaperAgent> agents = new ArrayList<>();
-        agents.add(new com.mycompany.app.agents.bogdanMCTS.Agent());
-        agents.add(new com.mycompany.app.agents.robinBaumgarten.Agent());
+        PaperAgent mctsAgent = new com.mycompany.app.agents.bogdanMCTS.Agent();
+        PaperAgent aStarAgent = new com.mycompany.app.agents.robinBaumgarten.Agent();
 
         HashSet<Integer> availableEnhancementMasks = MCTSEnhancements.AvailableEnhancementMasks();
         System.out.println("Available MCTS enhancements variants: "
                 + availableEnhancementMasks.size());
 
         for (int mctsEnhancementMask : availableEnhancementMasks) {
-            PlayAllSamples(time, agents, mctsEnhancementMask);
+            PlayAllSamplesWithEnhancements(mctsAgent, mctsEnhancementMask);
+            printStatistics(mctsAgent, time);
+            time = System.currentTimeMillis();
         }
+
+//        PresetEnhancements(mctsAgent);
+//        PlayAllSamples(mctsAgent);
+//        printStatistics(mctsAgent, time);
+
+
+        PlayAllSamples(aStarAgent);
+        printStatistics(aStarAgent, time);
 
 //        playSingleLevel(agents, "./levels/lvl-killer_plant.txt", PLAY_REPETITION_COUNT);
 //        playSingleLevel(agents, "./levels/original/lvl-1.txt", PLAY_REPETITION_COUNT);
@@ -178,40 +182,65 @@ public class PlayLevel {
         System.exit(0);
     }
 
-    private static void PlayAllSamples(long time, List<PaperAgent> agents, int mctsEnhancementMask) {
-        for (PaperAgent agent : agents) {
-            if (agent instanceof com.mycompany.app.agents.bogdanMCTS.Agent
-                    enhancedMCTSAgent) {
-                enhancedMCTSAgent.setEnhancements(mctsEnhancementMask);
-            }
+    private static void PresetEnhancements(PaperAgent mctsAgent) {
+        if (mctsAgent instanceof com.mycompany.app.agents.bogdanMCTS.Agent
+                enhancedMCTSAgent) {
+            int mctsEnhancementMask = MCTSEnhancements.
+                    AddEnhancements(0, new MCTSEnhancements.Enhancement[] {
+//                        MCTSEnhancements.Enhancement.SAFETY_PREPRUNING,
+                        MCTSEnhancements.Enhancement.HARD_PRUNING,
+                        MCTSEnhancements.Enhancement.N_GRAM_SELECTION,
+                        MCTSEnhancements.Enhancement.PARTIAL_EXPANSION,
+                        MCTSEnhancements.Enhancement.LOSS_AVOIDANCE,
+                        MCTSEnhancements.Enhancement.MIXMAX,
+                        MCTSEnhancements.Enhancement.TREE_REUSE,
+                        MCTSEnhancements.Enhancement.AGING,
+                        MCTSEnhancements.Enhancement.WU_UCT,
+                    });
+
+            enhancedMCTSAgent.setEnhancements(mctsEnhancementMask);
         }
+    }
+
+    private static void PlayAllSamplesWithEnhancements(PaperAgent mctsAgent, int mctsEnhancementMask) {
+        if (mctsAgent instanceof com.mycompany.app.agents.bogdanMCTS.Agent
+                enhancedMCTSAgent) {
+            enhancedMCTSAgent.setEnhancements(mctsEnhancementMask);
+        }
+
+        PlayAllSamples(mctsAgent);
+
+        mctsAgent.outputScores((int) progressBar.getMax(), mctsEnhancementMask);
+    }
+
+    private static void PlayAllSamples(PaperAgent agent) {
+        agent.clearScores();
 
         progressBar = new ProgressBar("Samples", NUMBER_OF_SAMPLES);
 
         for (int i = 0; i < NUMBER_OF_SAMPLES; ++i) {
-            playAllFolderLevels(agents, GenerateLevel.generateSampleLevels());
+            playAllFolderLevels(agent, GenerateLevel.generateSampleLevels());
+//            playAllFolderLevels(agent, LEVEL_DIR);
+
+            if (MULTITHREADED) {
+                WaitForAllThreadLevelsToFinish();
+            }
+
             progressBar.step();
         }
 
-        if (MULTITHREADED) {
-            for (var future : futures) {
-                try {
-                    future.get();
-                } catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
-                }
+        progressBar.close();
+    }
+
+    private static void WaitForAllThreadLevelsToFinish() {
+        for (var future : futures) {
+            try {
+                future.get();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
             }
         }
 
-        printStatistics(agents);
-
-        System.out.println("--------------------------------------------------------------------");
-        System.out.println("Execution time: " + (System.currentTimeMillis() - time));
-
-        for (var agent : agents) {
-            agent.outputScores((int) progressBar.getMax(), mctsEnhancementMask);
-        }
-
-        progressBar.close();
+        futures.clear();
     }
 }

@@ -1,5 +1,8 @@
 package com.mycompany.app.engine.core;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MarioLevelModel {
     //start and end of the level
     public static final char MARIO_START = 'M';
@@ -44,6 +47,13 @@ public class MarioLevelModel {
         return new char[]{BULLET_BILL, PIPE_FLOWER};
     }
 
+    public static List<Character> getEnemyTilesList() {
+        return new ArrayList<>(){{
+            add(BULLET_BILL);
+            add(PIPE_FLOWER);
+        }};
+    }
+
     /**
      * list of tiles that can be bumped by the player
      *
@@ -52,6 +62,17 @@ public class MarioLevelModel {
     public static char[] getBumpableTiles() {
         return new char[]{NORMAL_BRICK, COIN_BRICK, LIFE_BRICK, SPECIAL_BRICK,
                 SPECIAL_QUESTION_BLOCK, COIN_QUESTION_BLOCK};
+    }
+
+    public static List<Character> getBumpableTilesList() {
+        return new ArrayList<>(){{
+            add(NORMAL_BRICK);
+            add(COIN_BRICK);
+            add(LIFE_BRICK);
+            add(SPECIAL_BRICK);
+            add(SPECIAL_QUESTION_BLOCK);
+            add(COIN_QUESTION_BLOCK);
+        }};
     }
 
     /**
@@ -66,6 +87,24 @@ public class MarioLevelModel {
                 PIPE, PIPE_FLOWER, BULLET_BILL};
     }
 
+    public static List<Character> getSolidTilesList() {
+        return new ArrayList<>(){{
+            add(GROUND);
+            add(PYRAMID_BLOCK);
+            add(USED_BLOCK);
+            add(NORMAL_BRICK);
+            add(COIN_BRICK);
+            add(LIFE_BRICK);
+            add(SPECIAL_BRICK);
+            add(SPECIAL_QUESTION_BLOCK);
+            add(COIN_QUESTION_BLOCK);
+            add(PIPE);
+            add(PIPE_FLOWER);
+            add(BULLET_BILL);
+            add(PLATFORM);
+        }};
+    }
+
     /**
      * tiles that block the player and not interactive
      *
@@ -75,6 +114,15 @@ public class MarioLevelModel {
         return new char[]{GROUND, PYRAMID_BLOCK, USED_BLOCK, PIPE};
     }
 
+    public static List<Character> getBlockNonSpecialTilesList() {
+        return new ArrayList<>(){{
+            add(GROUND);
+            add(PYRAMID_BLOCK);
+            add(USED_BLOCK);
+            add(PIPE);
+        }};
+    }
+
     /**
      * list of all tiles that won't block the player movement
      *
@@ -82,6 +130,15 @@ public class MarioLevelModel {
      */
     public static char[] getNonBlockingTiles() {
         return new char[]{COIN, COIN_HIDDEN_BLOCK, LIFE_HIDDEN_BLOCK, PLATFORM_BACKGROUND};
+    }
+
+    public static List<Character> getNonBlockingTilesList() {
+        return new ArrayList<>(){{
+            add(COIN);
+            add(COIN_HIDDEN_BLOCK);
+            add(LIFE_HIDDEN_BLOCK);
+            add(PLATFORM_BACKGROUND);
+        }};
     }
 
     /**
@@ -94,6 +151,19 @@ public class MarioLevelModel {
                 COIN_BRICK, LIFE_BRICK, SPECIAL_BRICK,
                 SPECIAL_QUESTION_BLOCK, COIN_QUESTION_BLOCK,
                 COIN_HIDDEN_BLOCK, LIFE_HIDDEN_BLOCK};
+    }
+
+    public static List<Character> getCollectablesTilesList() {
+        return new ArrayList<>(){{
+            add(COIN);
+            add(COIN_BRICK);
+            add(LIFE_BRICK);
+            add(SPECIAL_BRICK);
+            add(SPECIAL_QUESTION_BLOCK);
+            add(COIN_QUESTION_BLOCK);
+            add(COIN_HIDDEN_BLOCK);
+            add(LIFE_HIDDEN_BLOCK);
+        }};
     }
 
     /**

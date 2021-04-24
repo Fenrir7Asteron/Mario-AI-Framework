@@ -8,4 +8,5 @@ public interface PaperAgent extends MarioAgent  {
     public double averageScore();
     public double averageTime();
     public void outputScores(int levelCount, int enhancements);
+    public void clearScores();
 }

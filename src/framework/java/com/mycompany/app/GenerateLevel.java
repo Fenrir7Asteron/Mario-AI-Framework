@@ -15,7 +15,7 @@ import java.util.stream.Stream;
 public class GenerateLevel {
     private static final int GENERATED_LEVEL_WIDTH = 150;
     private static final int GENERATED_LEVEL_HEIGHT = 16;
-    private static final int LEVEL_COUNT = 2;
+    private static final int LEVEL_COUNT = 100;
     private static final String LEVEL_DIR = "./levels/thesisTestLevels100/";
     private static final int REPETITION_COUNT = 15;
     private static final int TIME_FOR_LEVEL = 20;
