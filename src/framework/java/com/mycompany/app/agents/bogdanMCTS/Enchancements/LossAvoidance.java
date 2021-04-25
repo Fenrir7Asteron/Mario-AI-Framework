@@ -3,6 +3,7 @@ package com.mycompany.app.agents.bogdanMCTS.Enchancements;
 import com.mycompany.app.agents.bogdanMCTS.MCTree;
 import com.mycompany.app.agents.bogdanMCTS.NodeInternals.NodeBuilder;
 import com.mycompany.app.agents.bogdanMCTS.NodeInternals.TreeNode;
+import com.mycompany.app.agents.bogdanMCTS.SimulationResult;
 import com.mycompany.app.agents.bogdanMCTS.Utils;
 
 import java.util.LinkedList;
@@ -10,7 +11,7 @@ import java.util.LinkedList;
 public class LossAvoidance {
     private static final int NUMBER_OF_MOVES_REPLACE = 2;
 
-    public static MCTree.SimulationResult AvoidLoss(LinkedList<Integer> moveHistory, TreeNode sourceNode, int currentDepth) {
+    public static SimulationResult AvoidLoss(LinkedList<Integer> moveHistory, TreeNode sourceNode, int currentDepth) {
         var sourceSnapshot = sourceNode.getSceneSnapshot();
 
         // Create another simulation node and advance it until one move before the loss.
@@ -74,6 +75,6 @@ public class LossAvoidance {
         }
 
         moveHistory.add(bestActionId);
-        return new MCTree.SimulationResult(maxReward, moveHistory);
+        return new SimulationResult(maxReward, moveHistory);
     }
 }

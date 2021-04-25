@@ -3,6 +3,7 @@ package com.mycompany.app.agents.bogdanMCTS.Enchancements;
 import com.mycompany.app.agents.bogdanMCTS.MCTSEnhancements;
 import com.mycompany.app.agents.bogdanMCTS.MCTree;
 import com.mycompany.app.agents.bogdanMCTS.NodeInternals.TreeNode;
+import com.mycompany.app.agents.bogdanMCTS.SimulationResult;
 import com.mycompany.app.agents.bogdanMCTS.Utils;
 import com.mycompany.app.utils.RNG;
 import org.apache.commons.math3.util.Pair;
@@ -10,11 +11,9 @@ import org.apache.commons.math3.util.Pair;
 import java.util.*;
 import java.util.concurrent.*;
 
-import static com.mycompany.app.agents.bogdanMCTS.MCTree.select;
-
 public class WU_UCT {
-    private final static int MAX_EXPANSION_WORKERS = 6;
-    private final static int MAX_SIMULATION_WORKERS = 10;
+    private final static int MAX_EXPANSION_WORKERS = 8;
+    private final static int MAX_SIMULATION_WORKERS = 8;
 
     private ExecutorService _expansionWorkers = Executors.newFixedThreadPool(MAX_EXPANSION_WORKERS);
     private ExecutorService _simulationWorkers = Executors.newFixedThreadPool(MAX_SIMULATION_WORKERS);
@@ -26,10 +25,11 @@ public class WU_UCT {
     private HashMap<Integer, TreeNode> _simulationTaskRecorder = new HashMap<>();
     private int _searchId;
 
-    public void makeOneSearchStep(TreeNode root) {
-        TreeNode selectedNode = select(root);
+    public void makeOneSearchStep(MCTree tree) {
+        TreeNode root = tree.getRoot();
+        TreeNode selectedNode = tree.select(root);
 
-        if (MCTree.isExpandNeededForSelection(selectedNode)
+        if (tree.isExpandNeededForSelection(selectedNode)
                 && selectedNode.getScheduledExpansions() < Utils.availableActions.length) {
             _unscheduledExpansionTasks.add(_searchId);
             _expansionTaskRecorder.put(_searchId, selectedNode);
@@ -44,7 +44,7 @@ public class WU_UCT {
 
                 var nodeToExpand = _expansionTaskRecorder.get(task);
 
-                if (MCTSEnhancements.MaskContainsEnhancement(MCTree.getEnhancements(),
+                if (MCTSEnhancements.MaskContainsEnhancement(tree.getEnhancements(),
                         MCTSEnhancements.Enhancement.PARTIAL_EXPANSION)) {
                     int prevScheduledExpansionCount = nodeToExpand.getScheduledExpansions();
                     nodeToExpand.setScheduledExpansions(prevScheduledExpansionCount + 1);
@@ -54,7 +54,7 @@ public class WU_UCT {
 
                 try {
                     _expansionFutures.add(CompletableFuture.supplyAsync(
-                            () -> MCTree.expand(nodeToExpand),
+                            () -> tree.expand(nodeToExpand),
                             _expansionWorkers
                     ));
                 } catch (RejectedExecutionException ignored) {
@@ -93,7 +93,7 @@ public class WU_UCT {
         }
 
         if (_simulationFutures.size() == MAX_SIMULATION_WORKERS) {
-            waitSimulationWorker();
+            waitSimulationWorker(tree);
         }
 
         ++_searchId;
@@ -118,35 +118,35 @@ public class WU_UCT {
         }
     }
 
-    private void waitSimulationWorker() {
+    private void waitSimulationWorker(MCTree tree) {
         var simulationFuture = _simulationFutures.removeFirst();
 
         try {
-            Pair<MCTree.SimulationResult, Integer> simulationWorkerResult = (Pair<MCTree.SimulationResult, Integer>) simulationFuture.get();
-            MCTree.SimulationResult simulationResult = simulationWorkerResult.getFirst();
+            Pair<SimulationResult, Integer> simulationWorkerResult = (Pair<SimulationResult, Integer>) simulationFuture.get();
+            SimulationResult simulationResult = simulationWorkerResult.getFirst();
             int task = simulationWorkerResult.getSecond();
             var simulatedNode = _simulationTaskRecorder.get(task);
 
-            if (MCTSEnhancements.MaskContainsEnhancement(MCTree.getEnhancements(),
+            if (MCTSEnhancements.MaskContainsEnhancement(tree.getEnhancements(),
                     MCTSEnhancements.Enhancement.N_GRAM_SELECTION)) {
                 simulatedNode.getTree().getNGramSelection().updateRewards(
                         simulationResult.moveHistory,
                         simulationResult.reward
                 );
             }
-            MCTree.backpropagate(simulatedNode, simulationResult.reward);
+            tree.backpropagate(simulatedNode, simulationResult.reward);
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
     }
 
-    public void clear() {
+    public void clear(MCTree tree) {
         while (_expansionFutures.size() > 0) {
             waitExpansionWorker();
         }
 
         while (_simulationFutures.size() > 0) {
-            waitSimulationWorker();
+            waitSimulationWorker(tree);
         }
 
 //        try {

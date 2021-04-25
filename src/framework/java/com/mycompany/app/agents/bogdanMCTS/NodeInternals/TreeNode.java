@@ -86,6 +86,10 @@ public class TreeNode implements Cloneable {
     }
 
     public TreeNode getBestChild(boolean explore) {
+        if (children.size() == 0) {
+            return null;
+        }
+
         TreeNode best = children.get(RNG.nextInt(children.size()));
         double maxConfidence = MCTree.MIN_REWARD - 1;
 
@@ -216,7 +220,7 @@ public class TreeNode implements Cloneable {
         if (parent != null && data.sceneSnapshot == null) {
             data.sceneSnapshot = parent.getSceneSnapshot().clone();
 
-            for (int i = 0; i < MCTree.getRepetitions(); i++) {
+            for (int i = 0; i < tree.getRepetitions(); i++) {
                 if (Utils.availableActions.length > data.actionId) {
                     data.sceneSnapshot.advance(Utils.availableActions[data.actionId]);
                 }
@@ -245,7 +249,7 @@ public class TreeNode implements Cloneable {
         float nj = getVisitCount();
 
         double exploitation;
-        if (MCTSEnhancements.MaskContainsEnhancement(MCTree.getEnhancements(),
+        if (MCTSEnhancements.MaskContainsEnhancement(tree.getEnhancements(),
                 MCTSEnhancements.Enhancement.MIXMAX)) {
             exploitation = MixMax.getExploitation(data.averageReward, data.maxReward);
         } else {
@@ -258,7 +262,7 @@ public class TreeNode implements Cloneable {
                 return Double.POSITIVE_INFINITY;
             }
 
-            exploration = MCTree.getExplorationFactor() * Math.sqrt(2 * Math.log(n) / nj);
+            exploration = tree.getExplorationFactor() * Math.sqrt(2 * Math.log(n) / nj);
         }
 
         return exploitation + exploration;
@@ -323,7 +327,7 @@ public class TreeNode implements Cloneable {
 
     public void updateReward(double reward) {
 
-        if (!MCTSEnhancements.MaskContainsEnhancement(MCTree.getEnhancements(),
+        if (!MCTSEnhancements.MaskContainsEnhancement(tree.getEnhancements(),
                 MCTSEnhancements.Enhancement.WU_UCT)) {
             data.visitCount++;
         } else {
@@ -349,7 +353,7 @@ public class TreeNode implements Cloneable {
     public void pullSnapshotFromParent() {
         data.sceneSnapshot = parent.data.sceneSnapshot.clone();
 
-        for (int i = 0; i < MCTree.getRepetitions(); i++) {
+        for (int i = 0; i < tree.getRepetitions(); i++) {
             data.sceneSnapshot.advance(Utils.availableActions[data.actionId]);
         }
     }

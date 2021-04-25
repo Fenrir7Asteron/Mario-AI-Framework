@@ -13,47 +13,51 @@ public class MCTree implements Cloneable {
     public static final double PROGRESS_WEIGHT = 0.5;
     public static final double BASE_REWARD = 0.5;
     public static final double DAMAGE_WEIGHT = 0.5;
-    public static final double AGE_DECAY = 0.02;
+    public static final double AGE_DECAY = 0.05;
     public static final double PATH_LENGTH_WEIGHT = 0.5;
     public static final float MAX_REWARD = 1.0f;
     public static final float MIN_REWARD = 0.0f;
 
-    public final static int MAX_TREE_DEPTH = 1000;
-    public final static int MAX_SIMULATION_DEPTH = 6;
-    public final static double EXPLORATION_FACTOR = 0.188f;
-    public final static boolean DETERMINISTIC = false;
-    public final static int SEARCH_REPETITIONS = 100;
-    static int repetitions = 1;
-    static int enhancements;
+    public static final int MAX_TREE_DEPTH = 1000;
+    public static final int MAX_SIMULATION_DEPTH = 6;
+    public static final double EXPLORATION_FACTOR = 0.188f;
+    public static final boolean DETERMINISTIC = false;
+    public static final int SEARCH_REPETITIONS = 100;
+    public static final int REPETITIONS = 1;
+
+    int enhancements;
 
     private TreeNode _root = null;
     private WU_UCT _wuUct = null;
     private NGramSelection _nGramSelection = null;
 
-    MCTree(MarioForwardModel model, int repetitions) {
-        MCTree.repetitions = repetitions;
+    MCTree(MarioForwardModel model) {
         initializeRoot(model);
         _wuUct = new WU_UCT();
         _nGramSelection = new NGramSelection();
     }
 
-    public static double getExplorationFactor() {
+    public TreeNode getRoot() {
+        return _root;
+    }
+
+    public double getExplorationFactor() {
         return EXPLORATION_FACTOR;
     }
 
-    public static int getMaxSimulationDepth() {
+    public int getMaxSimulationDepth() {
         return MAX_SIMULATION_DEPTH;
     }
 
-    public static int getRepetitions() {
-        return repetitions;
+    public int getRepetitions() {
+        return REPETITIONS;
     }
 
-    public static int getEnhancements() {
+    public int getEnhancements() {
         return enhancements;
     }
 
-    public static void setEnhancements(int enhancementMask) {
+    public void setEnhancements(int enhancementMask) {
         enhancements = enhancementMask;
     }
 
@@ -62,6 +66,11 @@ public class MCTree implements Cloneable {
     }
 
     public void initializeRoot(MarioForwardModel model) {
+        if (model == null) {
+            _root = null;
+            return;
+        }
+
         _root = NodeBuilder.allocateNode(-1, null, this, model.clone());
 
         if (!MCTSEnhancements.MaskContainsEnhancement(getEnhancements(),
@@ -84,7 +93,7 @@ public class MCTree implements Cloneable {
             while (count < SEARCH_REPETITIONS) {
                 if (MCTSEnhancements.MaskContainsEnhancement(getEnhancements(),
                         MCTSEnhancements.Enhancement.WU_UCT)) {
-                    _wuUct.makeOneSearchStep(_root);
+                    _wuUct.makeOneSearchStep(this);
                 } else {
                     makeOneSearchStep(_root);
                 }
@@ -97,7 +106,7 @@ public class MCTree implements Cloneable {
                     if (timer.getRemainingTime() < 3) {
                         break;
                     }
-                    _wuUct.makeOneSearchStep(_root);
+                    _wuUct.makeOneSearchStep(this);
                 } else {
                     makeOneSearchStep(_root);
                 }
@@ -106,7 +115,7 @@ public class MCTree implements Cloneable {
 
         if (MCTSEnhancements.MaskContainsEnhancement(getEnhancements(),
                 MCTSEnhancements.Enhancement.WU_UCT)) {
-            _wuUct.clear();
+            _wuUct.clear(this);
         }
 
         if (MCTSEnhancements.MaskContainsEnhancement(getEnhancements(),
@@ -156,7 +165,7 @@ public class MCTree implements Cloneable {
         }
     }
 
-    public static boolean isExpandNeededForSelection(TreeNode node) {
+    public boolean isExpandNeededForSelection(TreeNode node) {
         if (node.getVisitCount() > 0
                 && node.getChildrenSize() < Utils.availableActions.length
                 && node.getDepth() < MCTree.MAX_TREE_DEPTH
@@ -172,7 +181,7 @@ public class MCTree implements Cloneable {
         return false;
     }
 
-    public synchronized static TreeNode expand(TreeNode node) {
+    public TreeNode expand(TreeNode node) {
         TreeNode newNode;
 
         if (MCTSEnhancements.MaskContainsEnhancement(getEnhancements(),
@@ -185,7 +194,7 @@ public class MCTree implements Cloneable {
         return newNode;
     }
 
-    public static TreeNode select(TreeNode root) {
+    public TreeNode select(TreeNode root) {
         TreeNode current = root;
         while (!current.isLeaf()) {
             TreeNode next = current.getBestChild(true);
@@ -201,21 +210,6 @@ public class MCTree implements Cloneable {
         }
 
         return current;
-    }
-
-    public static class SimulationResult {
-        public double reward;
-        public List<Integer> moveHistory;
-
-        public SimulationResult(double reward) {
-            this.reward = reward;
-            moveHistory = new LinkedList<>();
-        }
-
-        public SimulationResult(double reward, List<Integer> moveHistory) {
-            this.reward = reward;
-            this.moveHistory = moveHistory;
-        }
     }
 
     public SimulationResult simulate(TreeNode sourceNode) {
@@ -265,7 +259,7 @@ public class MCTree implements Cloneable {
                 , moveHistory);
     }
 
-    public static void backpropagate(TreeNode currentNode, double reward) {
+    public void backpropagate(TreeNode currentNode, double reward) {
         while (currentNode != null) {
             currentNode.updateReward(reward);
             if (MCTSEnhancements.MaskContainsEnhancement(getEnhancements(),
@@ -279,7 +273,7 @@ public class MCTree implements Cloneable {
         }
     }
 
-    private static void PruneIfAllChildrenAreHardPruned(TreeNode currentNode) {
+    private void PruneIfAllChildrenAreHardPruned(TreeNode currentNode) {
         if (currentNode.getChildrenSize() < Utils.availableActions.length) {
             return;
         }

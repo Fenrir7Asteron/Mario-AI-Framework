@@ -1,6 +1,7 @@
 package com.mycompany.app.agents.bogdanMCTS;
 
 import com.mycompany.app.agents.bogdanMCTS.MCTSEnhancements.Enhancement;
+import com.mycompany.app.agents.bogdanMCTS.NodeInternals.TreeNode;
 import com.mycompany.app.engine.core.MarioForwardModel;
 import com.mycompany.app.engine.core.MarioTimer;
 import com.mycompany.app.utils.FileWriter;
@@ -28,7 +29,16 @@ public class Agent implements PaperAgent {
 
     @Override
     public void initialize(MarioForwardModel model, MarioTimer timer) {
-        tree = new MCTree(model, 1);
+        if (tree == null) {
+            tree = new MCTree(model);
+        } else {
+            TreeNode root = tree.getRoot();
+            if (root != null) {
+                root.clearSubTree();
+            }
+
+            tree.updateModel(model);
+        }
     }
 
     @Override
@@ -79,7 +89,11 @@ public class Agent implements PaperAgent {
     }
 
     public void setEnhancements(int enhancementMask) {
-        MCTree.setEnhancements(enhancementMask);
+        if (tree == null) {
+            tree = new MCTree(null);
+        }
+
+        tree.setEnhancements(enhancementMask);
     }
 
     //    @Override

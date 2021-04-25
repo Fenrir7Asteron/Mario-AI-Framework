@@ -20,13 +20,13 @@ import me.tongfei.progressbar.ProgressBar;
 
 public class PlayLevel {
     public static final int DISTANCE_MULTIPLIER = 16;
-    public static final int TIME_FOR_LEVEL = 15;
+    public static final int TIME_FOR_LEVEL = 30;
     public static final int MARIO_START_MODE = 0;
     public static final String LEVEL_DIR = "./levels/thesisTestLevels100/";
     public static final int NUMBER_OF_SAMPLES = 1;
     public static final int PLAY_REPETITION_COUNT = 300;
-    public static final Boolean VISUALIZATION = false;
-    public static final Boolean MULTITHREADED = true;
+    public static final Boolean VISUALIZATION = true;
+    public static final Boolean MULTITHREADED = false;
 
     private static ArrayList<Future<?>> futures = new ArrayList<>();
     private static ProgressBar progressBar;
@@ -161,15 +161,15 @@ public class PlayLevel {
         System.out.println("Available MCTS enhancements variants: "
                 + availableEnhancementMasks.size());
 
-        for (int mctsEnhancementMask : availableEnhancementMasks) {
-            PlayAllSamplesWithEnhancements(mctsAgent, mctsEnhancementMask);
-            printStatistics(mctsAgent, time);
-            time = System.currentTimeMillis();
-        }
+//        for (int mctsEnhancementMask : availableEnhancementMasks) {
+//            PlayAllSamplesWithEnhancements(mctsAgent, mctsEnhancementMask);
+//            printStatistics(mctsAgent, time);
+//            time = System.currentTimeMillis();
+//        }
 
-//        PresetEnhancements(mctsAgent);
-//        PlayAllSamples(mctsAgent);
-//        printStatistics(mctsAgent, time);
+        PresetEnhancements(mctsAgent);
+        PlayAllSamples(mctsAgent);
+        printStatistics(mctsAgent, time);
 
 
         PlayAllSamples(aStarAgent);
@@ -187,10 +187,10 @@ public class PlayLevel {
                 enhancedMCTSAgent) {
             int mctsEnhancementMask = MCTSEnhancements.
                     AddEnhancements(0, new MCTSEnhancements.Enhancement[] {
-//                        MCTSEnhancements.Enhancement.SAFETY_PREPRUNING,
+                        MCTSEnhancements.Enhancement.SAFETY_PREPRUNING,
                         MCTSEnhancements.Enhancement.HARD_PRUNING,
                         MCTSEnhancements.Enhancement.N_GRAM_SELECTION,
-                        MCTSEnhancements.Enhancement.PARTIAL_EXPANSION,
+//                        MCTSEnhancements.Enhancement.PARTIAL_EXPANSION,
                         MCTSEnhancements.Enhancement.LOSS_AVOIDANCE,
                         MCTSEnhancements.Enhancement.MIXMAX,
                         MCTSEnhancements.Enhancement.TREE_REUSE,
