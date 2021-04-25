@@ -15,6 +15,7 @@ public class MCTSEnhancements {
         SP_MCTS,
         AGING,
         N_GRAM_SELECTION,
+        PROCRASTINATION_PUNISHER,
     }
 
     public static HashSet<Integer> AvailableEnhancementMasks() {

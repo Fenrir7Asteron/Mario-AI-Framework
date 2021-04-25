@@ -1,5 +1,6 @@
 package com.mycompany.app.agents.bogdanMCTS.NodeInternals;
 
+import com.mycompany.app.agents.bogdanMCTS.Enchancements.ProcrastinationPunisher;
 import com.mycompany.app.agents.bogdanMCTS.MCTSEnhancements;
 import com.mycompany.app.agents.bogdanMCTS.MCTree;
 import com.mycompany.app.utils.Constants;
@@ -17,15 +18,7 @@ public class TreeNode implements Cloneable {
     MCTree tree;
 
     public TreeNode(int actionId, TreeNode parent, MCTree tree) {
-        this.data = new TreeNodeData(actionId);
-
-        this.parent = parent;
-        if (parent != null) {
-            this.data.depth = parent.data.depth + 1;
-        }
-
-        this.children = new ArrayList<>();
-        this.tree = tree;
+        new TreeNode(actionId, parent, null, tree);
     }
 
     public TreeNode(int actionId, TreeNode parent, MarioForwardModel sceneSnapshot, MCTree tree) {
@@ -34,6 +27,8 @@ public class TreeNode implements Cloneable {
         this.parent = parent;
         if (parent != null) {
             this.data.depth = parent.data.depth + 1;
+            this.data.procrastinationPunisher =
+                    (ProcrastinationPunisher) parent.data.procrastinationPunisher.clone();
         }
 
         this.children = new ArrayList<>();
@@ -42,6 +37,10 @@ public class TreeNode implements Cloneable {
 
     public MarioForwardModel getSceneSnapshot() {
         return data.sceneSnapshot;
+    }
+
+    public ProcrastinationPunisher getProcrastinationPunisher() {
+        return data.procrastinationPunisher;
     }
 
     public TreeNode getParent() {
@@ -223,6 +222,11 @@ public class TreeNode implements Cloneable {
                 if (Utils.availableActions.length > data.actionId) {
                     data.sceneSnapshot.advance(Utils.availableActions[data.actionId]);
                 }
+            }
+
+            if (MCTSEnhancements.MaskContainsEnhancement(tree.getEnhancements(),
+                    MCTSEnhancements.Enhancement.PROCRASTINATION_PUNISHER)) {
+                data.procrastinationPunisher.addPositionSnapshot(getSceneSnapshot());
             }
 
             if (isLost()) {

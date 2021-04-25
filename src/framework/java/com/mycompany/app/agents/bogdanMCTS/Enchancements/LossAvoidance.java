@@ -67,7 +67,11 @@ public class LossAvoidance {
                     lossAvoidingSimulationNode.getSceneSnapshot().clone());
 
             nodeVariant.makeMove(Utils.availableActions[moveId], numberOfMovesToReplace);
-            double reward = Utils.calcReward(sourceSnapshot, nodeVariant.getSceneSnapshot(), currentDepth);
+            double reward = Utils.calcReward(
+                    sourceSnapshot,
+                    nodeVariant.getSceneSnapshot(),
+                    currentDepth,
+                    sourceNode);
             if (reward > maxReward) {
                 maxReward = reward;
                 bestActionId = moveId;

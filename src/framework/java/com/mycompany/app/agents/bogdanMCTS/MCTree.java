@@ -19,7 +19,7 @@ public class MCTree implements Cloneable {
     public static final float MIN_REWARD = 0.0f;
 
     public static final int MAX_TREE_DEPTH = 1000;
-    public static final int MAX_SIMULATION_DEPTH = 12;
+    public static final int MAX_SIMULATION_DEPTH = 6;
     public static final double EXPLORATION_FACTOR = 0.188f;
     public static final boolean DETERMINISTIC = false;
     public static final int SEARCH_REPETITIONS = 100;
@@ -268,7 +268,8 @@ public class MCTree implements Cloneable {
         return new SimulationResult(Utils.calcReward(
                     sourceSnapshot,
                     simulationNode.getSceneSnapshot(),
-                    sourceNode.getDepth())
+                    sourceNode.getDepth(),
+                sourceNode)
                 , moveHistory);
     }
 

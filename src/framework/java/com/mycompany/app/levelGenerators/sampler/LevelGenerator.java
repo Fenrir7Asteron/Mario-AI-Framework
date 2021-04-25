@@ -65,8 +65,6 @@ public class LevelGenerator implements MarioLevelGenerator {
         private static final Cell[] adjacentCells = {
                 new Cell(1, 0),
                 new Cell(0, 1),
-                new Cell(-1, 0),
-                new Cell(0, -1),
         };
 
         public static boolean validateLevel(MarioLevelModel model) {
@@ -120,20 +118,27 @@ public class LevelGenerator implements MarioLevelGenerator {
 
                 visited.clear();
 
-                limitedDfs(
-                        currentCell,
-                        currentCell.x - JUMP_HALF_WIDTH,
-                        currentCell.x + JUMP_HALF_WIDTH,
-                        currentCell.y - JUMP_HEIGHT,
-                        model.getHeight() - 1,
-                        currentDistance,
-                        cellsToVisit,
-                        distances,
-                        visited,
-                        model
-                );
+                for (int y = currentCell.y; y >= currentCell.y - JUMP_HEIGHT; --y) {
+                    Cell fallStartCell = new Cell(currentCell.x, y);
 
-                // Do some more.
+                    if (!fallStartCell.isValid(model)
+                            || !fallStartCell.isPassable(model)) {
+                        break;
+                    }
+
+                    limitedDfs(
+                            fallStartCell,
+                            currentCell.x - JUMP_HALF_WIDTH,
+                            currentCell.x + JUMP_HALF_WIDTH,
+                            currentCell.y - JUMP_HEIGHT,
+                            model.getHeight() - 1,
+                            currentDistance,
+                            cellsToVisit,
+                            distances,
+                            visited,
+                            model
+                    );
+                }
             }
 
             return distances;

@@ -8,10 +8,10 @@ import java.util.Hashtable;
 import java.util.List;
 
 public class NGramSelection {
-    private static final int N = 5;
+    private static final int N = 4;
     private static final int k = 7;
-    private static final double DECAY_FACTOR = 0.001f;
-    private static final double EPSILON = 0.1f;
+    private static final double DECAY_FACTOR = 0.01f;
+    private static final double EPSILON = 0.2f;
 
     private Hashtable<String, Result> nGramResultsMapping = new Hashtable<>();
 

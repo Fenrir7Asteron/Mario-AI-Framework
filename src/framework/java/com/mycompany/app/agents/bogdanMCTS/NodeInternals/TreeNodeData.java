@@ -1,5 +1,6 @@
 package com.mycompany.app.agents.bogdanMCTS.NodeInternals;
 
+import com.mycompany.app.agents.bogdanMCTS.Enchancements.ProcrastinationPunisher;
 import com.mycompany.app.engine.core.MarioForwardModel;
 
 import java.util.LinkedList;
@@ -19,17 +20,10 @@ class TreeNodeData implements Cloneable {
     int scheduledExpansions;
     boolean isPruned;
 
+    ProcrastinationPunisher procrastinationPunisher;
+
     TreeNodeData(int actionId) {
-        this.actionId = actionId;
-        this.maxReward = 0;
-        this.maxConfidence = 0;
-        this.totalReward = 0;
-        this.averageReward = 0;
-        this.visitCount = 0;
-        this.visitCountIncomplete = 0;
-        this.depth = 0;
-        this.isPruned = false;
-        this.scheduledExpansions = 0;
+        new TreeNodeData(actionId, null);
     }
 
     TreeNodeData(int actionId, MarioForwardModel sceneSnapshot) {
@@ -44,6 +38,7 @@ class TreeNodeData implements Cloneable {
         this.depth = 0;
         this.isPruned = false;
         this.scheduledExpansions = 0;
+        this.procrastinationPunisher = new ProcrastinationPunisher();
     }
 
     public void clear() {
@@ -58,5 +53,6 @@ class TreeNodeData implements Cloneable {
         this.depth = 0;
         this.isPruned = false;
         this.scheduledExpansions = 0;
+        this.procrastinationPunisher.clear();
     }
 }

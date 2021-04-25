@@ -187,16 +187,17 @@ public class PlayLevel {
                 enhancedMCTSAgent) {
             int mctsEnhancementMask = MCTSEnhancements.
                     AddEnhancements(0, new MCTSEnhancements.Enhancement[] {
-                        MCTSEnhancements.Enhancement.SAFETY_PREPRUNING,
-                        MCTSEnhancements.Enhancement.HARD_PRUNING,
+//                        MCTSEnhancements.Enhancement.SAFETY_PREPRUNING,
+//                        MCTSEnhancements.Enhancement.HARD_PRUNING,
 //                        MCTSEnhancements.Enhancement.N_GRAM_SELECTION,
 //                        MCTSEnhancements.Enhancement.PARTIAL_EXPANSION,
-                        MCTSEnhancements.Enhancement.LOSS_AVOIDANCE,
-                        MCTSEnhancements.Enhancement.MIXMAX,
-                        MCTSEnhancements.Enhancement.TREE_REUSE,
-                        MCTSEnhancements.Enhancement.AGING,
-                        MCTSEnhancements.Enhancement.WU_UCT,
-                        MCTSEnhancements.Enhancement.SP_MCTS,
+//                        MCTSEnhancements.Enhancement.LOSS_AVOIDANCE,
+//                        MCTSEnhancements.Enhancement.MIXMAX,
+//                        MCTSEnhancements.Enhancement.TREE_REUSE,
+//                        MCTSEnhancements.Enhancement.AGING,
+//                        MCTSEnhancements.Enhancement.WU_UCT,
+//                        MCTSEnhancements.Enhancement.SP_MCTS,
+                        MCTSEnhancements.Enhancement.PROCRASTINATION_PUNISHER
                     });
 
             enhancedMCTSAgent.setEnhancements(mctsEnhancementMask);

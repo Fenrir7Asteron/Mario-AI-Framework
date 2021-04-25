@@ -1,5 +1,6 @@
 package com.mycompany.app.agents.bogdanMCTS;
 
+import com.mycompany.app.agents.bogdanMCTS.NodeInternals.TreeNode;
 import com.mycompany.app.engine.core.MarioForwardModel;
 import com.mycompany.app.engine.helper.GameStatus;
 
@@ -16,7 +17,7 @@ public class Utils {
             new boolean[]{true, false, false, true, true},
     };
 
-    public static double calcReward(MarioForwardModel startSnapshot, MarioForwardModel endSnapshot, int currentDepth) {
+    public static double calcReward(MarioForwardModel startSnapshot, MarioForwardModel endSnapshot, int currentDepth, TreeNode sourceNode) {
         if (endSnapshot.getGameStatus() == GameStatus.WIN) {
             return MCTree.MAX_REWARD;
         }
@@ -34,6 +35,12 @@ public class Utils {
                 MCTree.PROGRESS_WEIGHT * (endX - startX) / (11.0 * (1 + MCTree.MAX_SIMULATION_DEPTH))
 //                        + PATH_LENGTH_WEIGHT * (maxTreeDepth - currentDepth) / maxTreeDepth
                         - MCTree.DAMAGE_WEIGHT * damage;
+
+        if (MCTSEnhancements.MaskContainsEnhancement(sourceNode.getTree().enhancements,
+                MCTSEnhancements.Enhancement.PROCRASTINATION_PUNISHER)) {
+            reward = sourceNode.getProcrastinationPunisher()
+                    .decreaseRewardBasedOnProcrastination(endSnapshot, reward);
+        }
 
         return reward;
     }
