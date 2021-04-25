@@ -13,13 +13,13 @@ public class MCTree implements Cloneable {
     public static final double PROGRESS_WEIGHT = 0.5;
     public static final double BASE_REWARD = 0.5;
     public static final double DAMAGE_WEIGHT = 0.5;
-    public static final double AGE_DECAY = 0.05;
+    public static final double AGE_DECAY = 0.03;
     public static final double PATH_LENGTH_WEIGHT = 0.5;
     public static final float MAX_REWARD = 1.0f;
     public static final float MIN_REWARD = 0.0f;
 
     public static final int MAX_TREE_DEPTH = 1000;
-    public static final int MAX_SIMULATION_DEPTH = 6;
+    public static final int MAX_SIMULATION_DEPTH = 12;
     public static final double EXPLORATION_FACTOR = 0.188f;
     public static final boolean DETERMINISTIC = false;
     public static final int SEARCH_REPETITIONS = 100;
@@ -28,13 +28,26 @@ public class MCTree implements Cloneable {
     int enhancements;
 
     private TreeNode _root = null;
-    private WU_UCT _wuUct = null;
-    private NGramSelection _nGramSelection = null;
+
+    public final WU_UCT _wuUct;
+    public final NGramSelection _nGramSelection;
+    public final HardPruning _hardPruning;
+    public final LossAvoidance _lossAvoidance;
+    public final MixMax _mixMax;
+    public final PartialExpansion _partialExpansion;
+    public final SafetyPrepruning _safetyPrepruning;
+    public final SP_MCTS _spMCTS;
 
     MCTree(MarioForwardModel model) {
         initializeRoot(model);
-        _wuUct = new WU_UCT();
+        _hardPruning = new HardPruning();
+        _lossAvoidance = new LossAvoidance();
+        _mixMax = new MixMax();
         _nGramSelection = new NGramSelection();
+        _partialExpansion = new PartialExpansion();
+        _safetyPrepruning = new SafetyPrepruning();
+        _spMCTS = new SP_MCTS();
+        _wuUct = new WU_UCT();
     }
 
     public TreeNode getRoot() {
@@ -84,7 +97,7 @@ public class MCTree implements Cloneable {
     public boolean[] search(MarioTimer timer) {
         if (MCTSEnhancements.MaskContainsEnhancement(getEnhancements(),
                 MCTSEnhancements.Enhancement.SAFETY_PREPRUNING)) {
-            SafetyPrepruning.safetyPreprune(_root);
+            _safetyPrepruning.safetyPreprune(_root);
         }
 
         if (DETERMINISTIC) {
@@ -172,7 +185,7 @@ public class MCTree implements Cloneable {
         ) {
             if (MCTSEnhancements.MaskContainsEnhancement(getEnhancements(),
                     MCTSEnhancements.Enhancement.PARTIAL_EXPANSION)) {
-                return PartialExpansion.isItPartialExpandTime(node);
+                return _partialExpansion.isItPartialExpandTime(node);
             } else {
                 return true;
             }
@@ -201,7 +214,7 @@ public class MCTree implements Cloneable {
 
             if (MCTSEnhancements.MaskContainsEnhancement(getEnhancements(),
                     MCTSEnhancements.Enhancement.PARTIAL_EXPANSION)) {
-                if (PartialExpansion.isItPartialExpandTime(current)) {
+                if (_partialExpansion.isItPartialExpandTime(current)) {
                     return current;
                 }
             }
@@ -243,7 +256,7 @@ public class MCTree implements Cloneable {
             if (MCTSEnhancements.MaskContainsEnhancement(getEnhancements(),
                     MCTSEnhancements.Enhancement.LOSS_AVOIDANCE)) {
                 // Try find a sibling simulation node with minimal loss.
-                return LossAvoidance.AvoidLoss(moveHistory, sourceNode, sourceNode.getDepth());
+                return _lossAvoidance.AvoidLoss(moveHistory, sourceNode, sourceNode.getDepth());
             }
         }
 
@@ -264,7 +277,7 @@ public class MCTree implements Cloneable {
             currentNode.updateReward(reward);
             if (MCTSEnhancements.MaskContainsEnhancement(getEnhancements(),
                     MCTSEnhancements.Enhancement.HARD_PRUNING)) {
-                HardPruning.tryPruneChildren(currentNode);
+                _hardPruning.tryPruneChildren(currentNode);
             }
 
             PruneIfAllChildrenAreHardPruned(currentNode);

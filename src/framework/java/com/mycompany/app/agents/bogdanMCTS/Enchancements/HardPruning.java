@@ -13,7 +13,7 @@ public class HardPruning {
     private final static int MIN_REMAINING_CHILDREN = 3;
     private final static double PRUNING_SPEED = 2.0f;
 
-    public static void tryPruneChildren(TreeNode parent) {
+    public void tryPruneChildren(TreeNode parent) {
         if (parent.getVisitCountComplete() > MIN_VISITS) {
             var sortedChildren = (ArrayList<TreeNode>) parent.getChildren().clone();
             sortedChildren.sort(Comparator.comparingDouble(TreeNode::getAverageReward));

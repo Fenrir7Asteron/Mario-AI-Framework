@@ -1,13 +1,12 @@
 package com.mycompany.app.agents.bogdanMCTS.NodeInternals;
 
-import com.mycompany.app.agents.bogdanMCTS.Enchancements.MixMax;
 import com.mycompany.app.agents.bogdanMCTS.MCTSEnhancements;
 import com.mycompany.app.agents.bogdanMCTS.MCTree;
+import com.mycompany.app.utils.Constants;
 import com.mycompany.app.utils.RNG;
 import com.mycompany.app.agents.bogdanMCTS.Utils;
 import com.mycompany.app.engine.core.MarioForwardModel;
 import com.mycompany.app.engine.helper.GameStatus;
-import com.sun.source.tree.Tree;
 
 import java.util.*;
 
@@ -246,26 +245,37 @@ public class TreeNode implements Cloneable {
         }
 
         float n = parent.getVisitCount();
-        float nj = getVisitCount();
+        float visitCount = getVisitCount();
 
         double exploitation;
         if (MCTSEnhancements.MaskContainsEnhancement(tree.getEnhancements(),
                 MCTSEnhancements.Enhancement.MIXMAX)) {
-            exploitation = MixMax.getExploitation(data.averageReward, data.maxReward);
+            exploitation = tree._mixMax.getExploitation(data.averageReward, data.maxReward);
         } else {
             exploitation = data.averageReward;
         }
 
         double exploration = 0.0f;
         if (explore) {
-            if (nj == 0) {
+            if (Math.abs(visitCount) < Constants.EPSILON) {
                 return Double.POSITIVE_INFINITY;
             }
 
-            exploration = tree.getExplorationFactor() * Math.sqrt(2 * Math.log(n) / nj);
+            exploration = tree.getExplorationFactor() * Math.sqrt(2 * Math.log(n) / visitCount);
+
+            if (MCTSEnhancements.MaskContainsEnhancement(tree.getEnhancements(),
+                    MCTSEnhancements.Enhancement.SP_MCTS)) {
+                exploration += tree._spMCTS.variability(this);
+            }
         }
 
+
+
         return exploitation + exploration;
+    }
+
+    public double getSumOfSquaredRewards() {
+        return data.sumOfRewardsSquared;
     }
 
     public void makeMove(boolean[] move) {
@@ -337,6 +347,7 @@ public class TreeNode implements Cloneable {
         data.totalReward += reward;
         data.maxReward = Math.max(data.maxReward, reward);
         data.averageReward = data.totalReward / getVisitCountComplete();
+        data.sumOfRewardsSquared += reward * reward;
     }
 
     public void ageDecaySubtree() {

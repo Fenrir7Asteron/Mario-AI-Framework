@@ -9,7 +9,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 public class SafetyPrepruning {
-    public static void safetyPreprune(TreeNode root) {
+    public void safetyPreprune(TreeNode root) {
         root.expandAll();
 
         for (var child : root.getChildren()) {

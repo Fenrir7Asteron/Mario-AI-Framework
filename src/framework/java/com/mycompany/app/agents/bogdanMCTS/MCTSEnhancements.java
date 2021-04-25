@@ -12,6 +12,7 @@ public class MCTSEnhancements {
         HARD_PRUNING,
         SAFETY_PREPRUNING,
         WU_UCT,
+        SP_MCTS,
         AGING,
         N_GRAM_SELECTION,
     }
@@ -27,29 +28,6 @@ public class MCTSEnhancements {
             if (MaskContainsEnhancement(enhancementsMask, enhancement)) {
                 shortNames.append("+").append(enhancement.toString(), 0, 3);
             }
-
-//            switch (enhancement) {
-//                case MIXMAX:
-//                    shortNames.append("+MM");
-//                    break;
-//                case TREE_REUSE:
-//                    shortNames.append("+TR");
-//                    break;
-//                case HARD_PRUNING:
-//                    shortNames.append("+HP");
-//                    break;
-//                case LOSS_AVOIDANCE:
-//                    shortNames.append("+LA");
-//                    break;
-//                case PARTIAL_EXPANSION:
-//                    shortNames.append("+PA");
-//                    break;
-//                case SAFETY_PREPRUNING:
-//                    shortNames.append("+SP");
-//                    break;
-//                default:
-//                    break;
-//            }
         }
 
         return shortNames.toString();

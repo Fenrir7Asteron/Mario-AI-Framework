@@ -5,7 +5,7 @@ import com.mycompany.app.agents.bogdanMCTS.NodeInternals.TreeNode;
 import com.mycompany.app.agents.bogdanMCTS.Utils;
 
 public class PartialExpansion {
-    public static boolean isItPartialExpandTime(TreeNode node) {
+    public boolean isItPartialExpandTime(TreeNode node) {
         float n = node.getVisitCount();
         int expands = node.getChildrenSize();
 
