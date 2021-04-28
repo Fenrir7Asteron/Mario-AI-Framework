@@ -5,16 +5,16 @@ import java.util.HashSet;
 
 public class MCTSEnhancements {
     public enum Enhancement {
+        HARD_PRUNING,
+        WU_UCT,
+        TREE_REUSE,
         MIXMAX,
+        N_GRAM_SELECTION,
         PARTIAL_EXPANSION,
         LOSS_AVOIDANCE,
-        TREE_REUSE,
-        HARD_PRUNING,
-        SAFETY_PREPRUNING,
-        WU_UCT,
-        SP_MCTS,
         AGING,
-        N_GRAM_SELECTION,
+        SP_MCTS,
+        SAFETY_PREPRUNING,
         PROCRASTINATION_PUNISHER,
     }
 

@@ -6,7 +6,7 @@ build/
 src/main/gen
 src/main/resources/templates.list
 src/main/resources/gitignore/*
-data/
+data/[GitIgnore]*
 levels/thesisTest*
 
 # Python gitignore.

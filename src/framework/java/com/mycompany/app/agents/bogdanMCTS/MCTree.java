@@ -13,14 +13,14 @@ public class MCTree implements Cloneable {
     public static final double PROGRESS_WEIGHT = 0.5;
     public static final double BASE_REWARD = 0.5;
     public static final double DAMAGE_WEIGHT = 0.5;
-    public static final double AGE_DECAY = 0.03;
+    public static final double AGE_DECAY = 0.02;
     public static final double PATH_LENGTH_WEIGHT = 0.5;
     public static final float MAX_REWARD = 1.0f;
     public static final float MIN_REWARD = 0.0f;
 
     public static final int MAX_TREE_DEPTH = 1000;
-    public static final int MAX_SIMULATION_DEPTH = 6;
-    public static final double EXPLORATION_FACTOR = 0.188f;
+    public static final int MAX_SIMULATION_DEPTH = 12;
+    public static final double EXPLORATION_FACTOR = 0.25f;
     public static final boolean DETERMINISTIC = false;
     public static final int SEARCH_REPETITIONS = 100;
     public static final int REPETITIONS = 1;

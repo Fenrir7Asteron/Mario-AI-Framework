@@ -4,6 +4,8 @@ import com.mycompany.app.agents.bogdanMCTS.NodeInternals.TreeNode;
 import com.mycompany.app.engine.core.MarioForwardModel;
 import com.mycompany.app.engine.helper.GameStatus;
 
+import java.util.ArrayList;
+
 public class Utils {
     // Left, Right, Down, Speed, Jump
     public static boolean[][] availableActions = new boolean[][]{
@@ -43,5 +45,21 @@ public class Utils {
         }
 
         return reward;
+    }
+
+    public static ArrayList<Double> averageLevelScores(int levelRepetitions, ArrayList<Double> resultScores) {
+        ArrayList<Double> resultScoresAveragedByLevel = new ArrayList<>();
+        int levelCount = resultScores.size() / levelRepetitions;
+
+        for (int levelIdx = 0; levelIdx < levelCount; ++levelIdx) {
+            double totalLevelScore = 0;
+            for (int j = 0; j < levelRepetitions; ++j) {
+                totalLevelScore += resultScores.get(levelIdx * levelRepetitions + j);
+            }
+
+            resultScoresAveragedByLevel.add(totalLevelScore / levelRepetitions);
+        }
+
+        return resultScoresAveragedByLevel;
     }
 }

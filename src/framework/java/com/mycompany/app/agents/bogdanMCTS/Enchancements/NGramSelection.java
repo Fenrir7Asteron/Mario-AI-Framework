@@ -8,8 +8,8 @@ import java.util.Hashtable;
 import java.util.List;
 
 public class NGramSelection {
-    private static final int N = 4;
-    private static final int k = 7;
+    private static final int N = 3;
+    private static final int k = 10;
     private static final double DECAY_FACTOR = 0.01f;
     private static final double EPSILON = 0.2f;
 
@@ -59,7 +59,7 @@ public class NGramSelection {
         for (var nGram : nGramResultsMapping.keySet()) {
             Result decayedResult = nGramResultsMapping.get(nGram);
             decayedResult.totalReward -= (decayedResult.totalReward - MCTree.BASE_REWARD * decayedResult.visitCount) * DECAY_FACTOR;
-            decayedResult.visitCount -= (decayedResult.visitCount - 1) * DECAY_FACTOR;
+            decayedResult.visitCount *= (1 - DECAY_FACTOR);
 
             nGramResultsMapping.put(nGram, decayedResult);
         }

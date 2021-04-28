@@ -6,8 +6,10 @@ import java.util.List;
 
 public class FileWriter {
 
-    public static void outputScoresToFile(int numberOfSamples, List<Double> resultScores, String dataFolder, String namePrefix) {
-        try(FileOutputStream fos = new FileOutputStream(dataFolder + namePrefix + ".txt"))
+    public static void outputScoresToFile(int numberOfSamples, List<Double> resultScores, String dataFolder, String namePrefix, Boolean loadResultsToGit) {
+        String fileName = loadResultsToGit ? "" : "[GitIgnore]";
+        fileName += dataFolder + namePrefix + ".txt";
+        try(FileOutputStream fos = new FileOutputStream(fileName))
         {
             int sampleSize = resultScores.size() / numberOfSamples;
 

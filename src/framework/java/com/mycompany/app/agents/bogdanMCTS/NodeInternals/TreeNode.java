@@ -355,8 +355,9 @@ public class TreeNode implements Cloneable {
     }
 
     public void ageDecaySubtree() {
-//        data.totalReward -= (data.totalReward - MCTree.BASE_REWARD * getVisitCountComplete()) * MCTree.AGE_DECAY;
-        data.totalReward *= (1 - MCTree.AGE_DECAY);
+        data.totalReward -= (data.totalReward - MCTree.BASE_REWARD * getVisitCountComplete()) * MCTree.AGE_DECAY;
+        data.totalReward = Math.max(0.0f, data.totalReward);
+//        data.totalReward *= (1 - MCTree.AGE_DECAY);
         data.visitCountIncomplete *= (1 - MCTree.AGE_DECAY);
         data.visitCount *= (1 - MCTree.AGE_DECAY);
 

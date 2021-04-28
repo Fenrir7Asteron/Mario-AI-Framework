@@ -1,6 +1,5 @@
 package com.mycompany.app.agents.bogdanMCTS;
 
-import com.mycompany.app.agents.bogdanMCTS.MCTSEnhancements.Enhancement;
 import com.mycompany.app.agents.bogdanMCTS.NodeInternals.TreeNode;
 import com.mycompany.app.engine.core.MarioForwardModel;
 import com.mycompany.app.engine.core.MarioTimer;
@@ -74,12 +73,14 @@ public class Agent implements PaperAgent {
     }
 
     @Override
-    public void outputScores(int numberOfSamples, int enhancements) {
+    public void outputScores(int numberOfSamples, int levelRepetitions, int enhancements, Boolean loadResultsToGit) {
         String namePrefix = getAgentName()
                 + numberOfSamples
                 + MCTSEnhancements.enhancementsToString(enhancements);
 
-        FileWriter.outputScoresToFile(numberOfSamples, resultScores, DATA_FOLDER, namePrefix);
+        ArrayList<Double> averageLevelScores = Utils.averageLevelScores(levelRepetitions, resultScores);
+
+        FileWriter.outputScoresToFile(numberOfSamples, averageLevelScores, DATA_FOLDER, namePrefix, loadResultsToGit);
     }
 
     @Override

@@ -24,7 +24,7 @@ public class ProcrastinationPunisher implements Cloneable {
 
     private Cell getCell(MarioForwardModel model) {
         float x = model.getMarioFloatPos()[0];
-        float y = 0;
+        float y = model.getMarioFloatPos()[1];
         int cellX = (int) (x / CELL_WIDTH);
         int cellY = (int) (y / CELL_WIDTH);
         return new Cell(cellX, cellY);
@@ -53,6 +53,7 @@ public class ProcrastinationPunisher implements Cloneable {
         @Override
         public String toString() {
             return "(" + x + " " + y + ")";
+//            return "(" + x + ")";
         }
     }
 }
