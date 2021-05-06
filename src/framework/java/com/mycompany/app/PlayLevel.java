@@ -19,15 +19,16 @@ import me.tongfei.progressbar.ProgressBar;
 
 public class PlayLevel {
     public static final int DISTANCE_MULTIPLIER = 16;
-    public static final int TIME_FOR_LEVEL = 60;
+    public static final int TIME_FOR_LEVEL = 30;
     public static final int MARIO_START_MODE = 0;
     public static final String LEVEL_DIR = "./levels/thesisTestLevels100/";
+//    public static final String LEVEL_DIR = "./levels/original/";
     public static final int NUMBER_OF_SAMPLES = 1;
-    public static final int LEVEL_REPETITION_COUNT = 10;
-    public static final Boolean VISUALIZATION = true;
+    public static final int LEVEL_REPETITION_COUNT = 3;
+    public static final Boolean VISUALIZATION = false;
     public static final Boolean LOAD_RESULTS_TO_GIT = true;
 
-    private static ArrayList<Future<?>> futures = new ArrayList<>();
+    private static final ArrayList<Future<Score>> futures = new ArrayList<>();
     private static ProgressBar progressBar;
 
     public static void printResults(MarioResult result) {
@@ -100,8 +101,7 @@ public class PlayLevel {
 //                var score = result.getCompletionPercentage() * levelWidth * DISTANCE_MULTIPLIER;
                 var score = result.getCompletionPercentage();
                 var time = (double) result.getRemainingTime() / 1000;
-                agent.addResult(new Score(score, time));
-//                progressBar.step();
+                return new Score(score, time);
             }));
         } else {
             var result = game.runGame(agent, getLevel(levelName), TIME_FOR_LEVEL, MARIO_START_MODE, VISUALIZATION);
@@ -188,15 +188,16 @@ public class PlayLevel {
         System.out.println("Available MCTS enhancements combinations: "
                 + availableEnhancementMasks.size());
 
-        for (int mctsEnhancementMask : availableEnhancementMasks) {
-            PlayAllSamplesWithEnhancements(mctsAgent, mctsEnhancementMask);
-            printStatistics(mctsAgent, time, mctsEnhancementMask);
-            time = System.currentTimeMillis();
-        }
+//        for (int mctsEnhancementMask : availableEnhancementMasks) {
+//            PlayAllSamplesWithEnhancements(mctsAgent, mctsEnhancementMask);
+//            printStatistics(mctsAgent, time, mctsEnhancementMask);
+//            time = System.currentTimeMillis();
+//        }
 
-//        int enhancements = PresetEnhancements(mctsAgent);
-//        PlayAllSamples(mctsAgent, enhancements);
-//        printStatistics(mctsAgent, time, enhancements);
+        int enhancements = PresetEnhancements(mctsAgent);
+        PlayAllSamples(mctsAgent, enhancements);
+        printStatistics(mctsAgent, time, enhancements);
+        mctsAgent.outputScores(NUMBER_OF_SAMPLES, LEVEL_REPETITION_COUNT, enhancements, LOAD_RESULTS_TO_GIT);
 
         PlayAllSamples(aStarAgent, 0);
         printStatistics(aStarAgent, time, 0);
@@ -216,13 +217,13 @@ public class PlayLevel {
                     AddEnhancements(0, new MCTSEnhancements.Enhancement[] {
                         MCTSEnhancements.Enhancement.HARD_PRUNING,
                             MCTSEnhancements.Enhancement.WU_UCT,
-                            MCTSEnhancements.Enhancement.TREE_REUSE,
+//                            MCTSEnhancements.Enhancement.TREE_REUSE,
                             MCTSEnhancements.Enhancement.MIXMAX,
-                            MCTSEnhancements.Enhancement.N_GRAM_SELECTION,
-//                        MCTSEnhancements.Enhancement.PARTIAL_EXPANSION,
-                            MCTSEnhancements.Enhancement.LOSS_AVOIDANCE,
-                            MCTSEnhancements.Enhancement.AGING,
-                            MCTSEnhancements.Enhancement.SP_MCTS,
+//                            MCTSEnhancements.Enhancement.N_GRAM_SELECTION,
+//                            MCTSEnhancements.Enhancement.LOSS_AVOIDANCE,
+//                            MCTSEnhancements.Enhancement.AGING,
+//                            MCTSEnhancements.Enhancement.MACRO_ACTIONS,
+//                            MCTSEnhancements.Enhancement.SP_MCTS
                     });
 
             enhancedMCTSAgent.setEnhancements(mctsEnhancementMask);
@@ -256,17 +257,18 @@ public class PlayLevel {
             playAllFolderLevels(agent, LEVEL_DIR, levelCount, mctsEnhancementMask);
 
             if (futures.size() > 0) {
-                WaitForAllThreadLevelsToFinish();
+                WaitForAllThreadLevelsToFinish(agent);
             }
         }
 
         progressBar.close();
     }
 
-    private static void WaitForAllThreadLevelsToFinish() {
+    private static void WaitForAllThreadLevelsToFinish(PaperAgent agent) {
         for (var future : futures) {
             try {
-                future.get();
+                Score score = future.get();
+                agent.addResult(score);
                 progressBar.step();
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();

@@ -19,6 +19,8 @@ class TreeNodeData implements Cloneable {
     int actionId;
     int scheduledExpansions;
     boolean isPruned;
+    int repetitions;
+    boolean dangerousPlace;
 
     ProcrastinationPunisher procrastinationPunisher;
 
@@ -38,6 +40,7 @@ class TreeNodeData implements Cloneable {
         this.depth = 0;
         this.isPruned = false;
         this.scheduledExpansions = 0;
+        this.repetitions = 1;
         this.procrastinationPunisher = new ProcrastinationPunisher();
     }
 

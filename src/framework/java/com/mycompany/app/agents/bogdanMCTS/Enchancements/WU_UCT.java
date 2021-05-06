@@ -12,8 +12,8 @@ import java.util.*;
 import java.util.concurrent.*;
 
 public class WU_UCT {
-    private final static int MAX_EXPANSION_WORKERS = 8;
-    private final static int MAX_SIMULATION_WORKERS = 8;
+    private final static int MAX_EXPANSION_WORKERS = 14;
+    private final static int MAX_SIMULATION_WORKERS = 14;
 
     private ExecutorService _expansionWorkers = Executors.newFixedThreadPool(MAX_EXPANSION_WORKERS);
     private ExecutorService _simulationWorkers = Executors.newFixedThreadPool(MAX_SIMULATION_WORKERS);

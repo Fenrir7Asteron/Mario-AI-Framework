@@ -10,10 +10,11 @@ public class MCTSEnhancements {
         TREE_REUSE,
         MIXMAX,
         N_GRAM_SELECTION,
-        PARTIAL_EXPANSION,
+        MACRO_ACTIONS,
         LOSS_AVOIDANCE,
         AGING,
         SP_MCTS,
+        PARTIAL_EXPANSION,
         SAFETY_PREPRUNING,
         PROCRASTINATION_PUNISHER,
     }

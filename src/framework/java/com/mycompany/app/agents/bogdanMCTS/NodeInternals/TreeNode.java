@@ -17,11 +17,7 @@ public class TreeNode implements Cloneable {
     ArrayList<TreeNode> children;
     MCTree tree;
 
-    public TreeNode(int actionId, TreeNode parent, MCTree tree) {
-        new TreeNode(actionId, parent, null, tree);
-    }
-
-    public TreeNode(int actionId, TreeNode parent, MarioForwardModel sceneSnapshot, MCTree tree) {
+    public TreeNode(int actionId, TreeNode parent, MarioForwardModel sceneSnapshot, MCTree tree, int repetitions) {
         this.data = new TreeNodeData(actionId, sceneSnapshot);
 
         this.parent = parent;
@@ -33,6 +29,7 @@ public class TreeNode implements Cloneable {
 
         this.children = new ArrayList<>();
         this.tree = tree;
+        this.data.repetitions = repetitions;
     }
 
     public MarioForwardModel getSceneSnapshot() {
@@ -134,12 +131,13 @@ public class TreeNode implements Cloneable {
         data.visitCount++;
     }
 
-    public synchronized TreeNode expandAll() {
+    public synchronized TreeNode expandAll(int repetitions) {
         // Expand node to all possible actions
         var freeIds = getFreeIds();
         TreeNode nodeToSimulate = null;
+
         for (var newId : freeIds) {
-            TreeNode child = NodeBuilder.allocateNode(newId, this, tree, null);
+            TreeNode child = NodeBuilder.allocateNode(newId, this, tree, null, repetitions);
             child.simulatePos();
             children.add(child);
 
@@ -174,11 +172,12 @@ public class TreeNode implements Cloneable {
         return nodeToSimulate;
     }
 
-    public synchronized TreeNode expandOne() {
+    public synchronized TreeNode expandOne(int repetitions) {
         var freeIds = getFreeIds();
+
         if (freeIds.size() > 0) {
             int newId = freeIds.get(RNG.nextInt(freeIds.size()));
-            TreeNode child = NodeBuilder.allocateNode(newId, this, tree, null);
+            TreeNode child = NodeBuilder.allocateNode(newId, this, tree, null, repetitions);
             child.simulatePos();
             children.add(child);
 
@@ -218,8 +217,8 @@ public class TreeNode implements Cloneable {
         if (parent != null && data.sceneSnapshot == null) {
             data.sceneSnapshot = parent.getSceneSnapshot().clone();
 
-            for (int i = 0; i < tree.getRepetitions(); i++) {
-                if (Utils.availableActions.length > data.actionId) {
+            if (data.actionId >= 0 && Utils.availableActions.length > data.actionId) {
+                for (int i = 0; i < data.repetitions; i++) {
                     data.sceneSnapshot.advance(Utils.availableActions[data.actionId]);
                 }
             }
@@ -254,7 +253,7 @@ public class TreeNode implements Cloneable {
         double exploitation;
         if (MCTSEnhancements.MaskContainsEnhancement(tree.getEnhancements(),
                 MCTSEnhancements.Enhancement.MIXMAX)) {
-            exploitation = tree._mixMax.getExploitation(data.averageReward, data.maxReward);
+            exploitation = tree.mixMax.getExploitation(data.averageReward, data.maxReward);
         } else {
             exploitation = data.averageReward;
         }
@@ -269,7 +268,7 @@ public class TreeNode implements Cloneable {
 
             if (MCTSEnhancements.MaskContainsEnhancement(tree.getEnhancements(),
                     MCTSEnhancements.Enhancement.SP_MCTS)) {
-                exploration += tree._spMCTS.variability(this);
+                exploration += tree.spMCTS.variability(this);
             }
         }
 
@@ -400,6 +399,18 @@ public class TreeNode implements Cloneable {
             return maxDepth;
         }
         return data.depth;
+    }
+
+    public int getRepetitions() {
+        return data.repetitions;
+    }
+
+    public boolean getDangerous() {
+        return data.dangerousPlace;
+    }
+
+    public void setDangerous(boolean isDangerous) {
+        data.dangerousPlace = isDangerous;
     }
 
     private void recalculateSubTreeDepth(int newDepth) {

@@ -10,7 +10,7 @@ import java.util.concurrent.Future;
 
 public class SafetyPrepruning {
     public void safetyPreprune(TreeNode root) {
-        root.expandAll();
+        root.expandAll(1);
 
         for (var child : root.getChildren()) {
             if (child.isLost()) {

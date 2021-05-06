@@ -5,6 +5,7 @@ import com.mycompany.app.agents.bogdanMCTS.NodeInternals.NodeBuilder;
 import com.mycompany.app.agents.bogdanMCTS.NodeInternals.TreeNode;
 import com.mycompany.app.engine.core.MarioForwardModel;
 import com.mycompany.app.engine.core.MarioTimer;
+import com.mycompany.app.utils.Constants;
 
 import java.util.*;
 
@@ -18,36 +19,42 @@ public class MCTree implements Cloneable {
     public static final float MAX_REWARD = 1.0f;
     public static final float MIN_REWARD = 0.0f;
 
-    public static final int MAX_TREE_DEPTH = 1000;
+    public static final int MAX_TREE_DEPTH = 20;
     public static final int MAX_SIMULATION_DEPTH = 12;
-    public static final double EXPLORATION_FACTOR = 0.25f;
+    public static final double EXPLORATION_FACTOR = 0.188f;
     public static final boolean DETERMINISTIC = false;
     public static final int SEARCH_REPETITIONS = 100;
-    public static final int REPETITIONS = 1;
+    public static final int MACRO_REPETITIONS = 3;
+    public static final int DANGER_NODE_DISTANCE = 3;
 
     int enhancements;
 
-    private TreeNode _root = null;
+    public final WU_UCT wuUct;
+    public final NGramSelection nGramSelection;
+    public final HardPruning hardPruning;
+    public final LossAvoidance lossAvoidance;
+    public final MixMax mixMax;
+    public final PartialExpansion partialExpansion;
+    public final SafetyPrepruning safetyPrepruning;
+    public final SP_MCTS spMCTS;
 
-    public final WU_UCT _wuUct;
-    public final NGramSelection _nGramSelection;
-    public final HardPruning _hardPruning;
-    public final LossAvoidance _lossAvoidance;
-    public final MixMax _mixMax;
-    public final PartialExpansion _partialExpansion;
-    public final SafetyPrepruning _safetyPrepruning;
-    public final SP_MCTS _spMCTS;
+
+    private TreeNode _root = null;
+    private int actionRepeated;
+    private int bestActionId;
 
     MCTree(MarioForwardModel model) {
         initializeRoot(model);
-        _hardPruning = new HardPruning();
-        _lossAvoidance = new LossAvoidance();
-        _mixMax = new MixMax();
-        _nGramSelection = new NGramSelection();
-        _partialExpansion = new PartialExpansion();
-        _safetyPrepruning = new SafetyPrepruning();
-        _spMCTS = new SP_MCTS();
-        _wuUct = new WU_UCT();
+        hardPruning = new HardPruning();
+        lossAvoidance = new LossAvoidance();
+        mixMax = new MixMax();
+        nGramSelection = new NGramSelection();
+        partialExpansion = new PartialExpansion();
+        safetyPrepruning = new SafetyPrepruning();
+        spMCTS = new SP_MCTS();
+        wuUct = new WU_UCT();
+
+        actionRepeated = getRepetitions();
     }
 
     public TreeNode getRoot() {
@@ -63,7 +70,11 @@ public class MCTree implements Cloneable {
     }
 
     public int getRepetitions() {
-        return REPETITIONS;
+        if (MCTSEnhancements.MaskContainsEnhancement(enhancements, MCTSEnhancements.Enhancement.MACRO_ACTIONS)) {
+            return MACRO_REPETITIONS;
+        } else {
+            return 1;
+        }
     }
 
     public int getEnhancements() {
@@ -75,7 +86,7 @@ public class MCTree implements Cloneable {
     }
 
     public NGramSelection getNGramSelection() {
-        return _nGramSelection;
+        return nGramSelection;
     }
 
     public void initializeRoot(MarioForwardModel model) {
@@ -84,68 +95,39 @@ public class MCTree implements Cloneable {
             return;
         }
 
-        _root = NodeBuilder.allocateNode(-1, null, this, model.clone());
+        int repetitions = getRepetitions();
+        _root = NodeBuilder.allocateNode(-1, null, this, model.clone(), repetitions);
 
         if (!MCTSEnhancements.MaskContainsEnhancement(getEnhancements(),
                 MCTSEnhancements.Enhancement.PARTIAL_EXPANSION)) {
-            _root.expandAll();
+            _root.expandAll(repetitions);
         } else {
-            _root.expandOne();
+            _root.expandOne(repetitions);
         }
     }
 
     public boolean[] search(MarioTimer timer) {
-        if (MCTSEnhancements.MaskContainsEnhancement(getEnhancements(),
-                MCTSEnhancements.Enhancement.SAFETY_PREPRUNING)) {
-            _safetyPrepruning.safetyPreprune(_root);
+        monteCarloUpdates(timer);
+
+        if (_root.getDangerous() || !MCTSEnhancements.MaskContainsEnhancement(enhancements, MCTSEnhancements.Enhancement.MACRO_ACTIONS)) {
+            updateTreeRoot();
+            return Utils.availableActions[bestActionId];
         }
 
-        if (DETERMINISTIC) {
-            int count = 0;
-
-            while (count < SEARCH_REPETITIONS) {
-                if (MCTSEnhancements.MaskContainsEnhancement(getEnhancements(),
-                        MCTSEnhancements.Enhancement.WU_UCT)) {
-                    _wuUct.makeOneSearchStep(this);
-                } else {
-                    makeOneSearchStep(_root);
-                }
-                ++count;
-            }
-        } else {
-            while (timer.getRemainingTime() > 0) {
-                if (MCTSEnhancements.MaskContainsEnhancement(getEnhancements(),
-                        MCTSEnhancements.Enhancement.WU_UCT)) {
-                    if (timer.getRemainingTime() < 3) {
-                        break;
-                    }
-                    _wuUct.makeOneSearchStep(this);
-                } else {
-                    makeOneSearchStep(_root);
-                }
-            }
+        if (actionRepeated >= _root.getRepetitions()) {
+            updateTreeRoot();
+            actionRepeated = 0;
         }
 
-        if (MCTSEnhancements.MaskContainsEnhancement(getEnhancements(),
-                MCTSEnhancements.Enhancement.WU_UCT)) {
-            _wuUct.clear(this);
-        }
+        actionRepeated++;
 
-        if (MCTSEnhancements.MaskContainsEnhancement(getEnhancements(),
-                MCTSEnhancements.Enhancement.N_GRAM_SELECTION)) {
-            _nGramSelection.decayMoves();
-        }
+        return Utils.availableActions[bestActionId];
+    }
 
-        TreeNode bestNode = _root.getBestChild(false);
+    private void updateTreeRoot() {
+        TreeNode bestNode = getBestNodeAndUpdateBestAction();
 
-        int bestActionId;
-        if (bestNode != null) {
-            bestActionId = bestNode.getActionId();
-        } else {
-            bestActionId = _root.getRandomMove();
-        }
-
-        if (!MCTSEnhancements.MaskContainsEnhancement(getEnhancements(),
+        if (_root.getDangerous() || !MCTSEnhancements.MaskContainsEnhancement(getEnhancements(),
                 MCTSEnhancements.Enhancement.TREE_REUSE)) {
             _root.clearSubTree();
         } else {
@@ -162,8 +144,61 @@ public class MCTree implements Cloneable {
 
             _root = bestNode;
         }
+    }
 
-        return Utils.availableActions[bestActionId];
+    private TreeNode getBestNodeAndUpdateBestAction() {
+        TreeNode bestNode = _root.getBestChild(false);
+
+        if (bestNode != null) {
+            bestActionId = bestNode.getActionId();
+        } else {
+            bestActionId = _root.getRandomMove();
+        }
+
+        return bestNode;
+    }
+
+    private void monteCarloUpdates(MarioTimer timer) {
+        if (MCTSEnhancements.MaskContainsEnhancement(getEnhancements(),
+                MCTSEnhancements.Enhancement.SAFETY_PREPRUNING)) {
+            safetyPrepruning.safetyPreprune(_root);
+        }
+
+        if (DETERMINISTIC) {
+            int count = 0;
+
+            while (count < SEARCH_REPETITIONS) {
+                if (MCTSEnhancements.MaskContainsEnhancement(getEnhancements(),
+                        MCTSEnhancements.Enhancement.WU_UCT)) {
+                    wuUct.makeOneSearchStep(this);
+                } else {
+                    makeOneSearchStep(_root);
+                }
+                ++count;
+            }
+        } else {
+            while (timer.getRemainingTime() > 0) {
+                if (MCTSEnhancements.MaskContainsEnhancement(getEnhancements(),
+                        MCTSEnhancements.Enhancement.WU_UCT)) {
+                    if (timer.getRemainingTime() < 3) {
+                        break;
+                    }
+                    wuUct.makeOneSearchStep(this);
+                } else {
+                    makeOneSearchStep(_root);
+                }
+            }
+        }
+
+        if (MCTSEnhancements.MaskContainsEnhancement(getEnhancements(),
+                MCTSEnhancements.Enhancement.WU_UCT)) {
+            wuUct.clear(this);
+        }
+
+        if (MCTSEnhancements.MaskContainsEnhancement(getEnhancements(),
+                MCTSEnhancements.Enhancement.N_GRAM_SELECTION)) {
+            nGramSelection.decayMoves();
+        }
     }
 
     boolean checkTreeRoot() {
@@ -185,7 +220,7 @@ public class MCTree implements Cloneable {
         ) {
             if (MCTSEnhancements.MaskContainsEnhancement(getEnhancements(),
                     MCTSEnhancements.Enhancement.PARTIAL_EXPANSION)) {
-                return _partialExpansion.isItPartialExpandTime(node);
+                return partialExpansion.isItPartialExpandTime(node);
             } else {
                 return true;
             }
@@ -199,9 +234,9 @@ public class MCTree implements Cloneable {
 
         if (MCTSEnhancements.MaskContainsEnhancement(getEnhancements(),
                 MCTSEnhancements.Enhancement.PARTIAL_EXPANSION)) {
-            newNode = node.expandOne();
+            newNode = node.expandOne(getRepetitions());
         } else {
-            newNode = node.expandAll();
+            newNode = node.expandAll(getRepetitions());
         }
 
         return newNode;
@@ -214,7 +249,7 @@ public class MCTree implements Cloneable {
 
             if (MCTSEnhancements.MaskContainsEnhancement(getEnhancements(),
                     MCTSEnhancements.Enhancement.PARTIAL_EXPANSION)) {
-                if (_partialExpansion.isItPartialExpandTime(current)) {
+                if (partialExpansion.isItPartialExpandTime(current)) {
                     return current;
                 }
             }
@@ -232,7 +267,7 @@ public class MCTree implements Cloneable {
 
         var sourceSnapshot = sourceNode.getSceneSnapshot();
 
-        TreeNode simulationNode = NodeBuilder.allocateNode(-1, null, this, sourceSnapshot.clone());
+        TreeNode simulationNode = NodeBuilder.allocateNode(-1, null, this, sourceSnapshot.clone(), 1);
 
         int step = 0;
         LinkedList<Integer> moveHistory = new LinkedList<>();
@@ -243,12 +278,12 @@ public class MCTree implements Cloneable {
             int nextMoveId;
             if (MCTSEnhancements.MaskContainsEnhancement(getEnhancements(),
                     MCTSEnhancements.Enhancement.N_GRAM_SELECTION)) {
-                nextMoveId = _nGramSelection.getMove(moveHistory);
+                nextMoveId = nGramSelection.getMove(moveHistory);
             } else {
                 nextMoveId = simulationNode.getRandomMove();
             }
 
-            simulationNode.makeMove(Utils.availableActions[nextMoveId]);
+            simulationNode.makeMove(Utils.availableActions[nextMoveId], 1);
             moveHistory.add(nextMoveId);
         }
 
@@ -256,7 +291,7 @@ public class MCTree implements Cloneable {
             if (MCTSEnhancements.MaskContainsEnhancement(getEnhancements(),
                     MCTSEnhancements.Enhancement.LOSS_AVOIDANCE)) {
                 // Try find a sibling simulation node with minimal loss.
-                return _lossAvoidance.AvoidLoss(moveHistory, sourceNode, sourceNode.getDepth());
+                return lossAvoidance.AvoidLoss(moveHistory, sourceNode, sourceNode.getDepth());
             }
         }
 
@@ -274,11 +309,20 @@ public class MCTree implements Cloneable {
     }
 
     public void backpropagate(TreeNode currentNode, double reward) {
+        int distanceFromLeaf = 0;
+
         while (currentNode != null) {
+            if (MCTSEnhancements.MaskContainsEnhancement(enhancements, MCTSEnhancements.Enhancement.MACRO_ACTIONS)
+                    && distanceFromLeaf < DANGER_NODE_DISTANCE
+                    && reward < MCTree.MIN_REWARD + Constants.EPSILON) {
+                distanceFromLeaf++;
+                currentNode.setDangerous(true);
+            }
+
             currentNode.updateReward(reward);
             if (MCTSEnhancements.MaskContainsEnhancement(getEnhancements(),
                     MCTSEnhancements.Enhancement.HARD_PRUNING)) {
-                _hardPruning.tryPruneChildren(currentNode);
+                hardPruning.tryPruneChildren(currentNode);
             }
 
             PruneIfAllChildrenAreHardPruned(currentNode);
@@ -314,7 +358,7 @@ public class MCTree implements Cloneable {
         SimulationResult result = simulate(node);
         if (MCTSEnhancements.MaskContainsEnhancement(getEnhancements(),
                 MCTSEnhancements.Enhancement.N_GRAM_SELECTION)) {
-            _nGramSelection.updateRewards(result.moveHistory, result.reward);
+            nGramSelection.updateRewards(result.moveHistory, result.reward);
         }
         backpropagate(node, result.reward);
     }

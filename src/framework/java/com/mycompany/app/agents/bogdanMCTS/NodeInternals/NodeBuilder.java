@@ -3,12 +3,6 @@ package com.mycompany.app.agents.bogdanMCTS.NodeInternals;
 import com.mycompany.app.agents.bogdanMCTS.MCTree;
 import com.mycompany.app.engine.core.MarioForwardModel;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.LinkedBlockingQueue;
-
 public class NodeBuilder {
 //    private static final int MAX_POOL_SIZE = 2000;
 //
@@ -17,7 +11,7 @@ public class NodeBuilder {
     public static TreeNode allocateNode(int actionId,
                                         TreeNode parent,
                                         MCTree tree,
-                                        MarioForwardModel sceneSnapshot) {
+                                        MarioForwardModel sceneSnapshot, int repetitions) {
 //        if (nodePool.size() > 0) {
 //            var node = nodePool.remove();
 //            node.data.actionId = actionId;
@@ -26,7 +20,7 @@ public class NodeBuilder {
 //
 //            return node;
 //        }
-        return new TreeNode(actionId, parent, sceneSnapshot, tree);
+        return new TreeNode(actionId, parent, sceneSnapshot, tree, repetitions);
     }
 
     public static  void deallocateNode(TreeNode node) {

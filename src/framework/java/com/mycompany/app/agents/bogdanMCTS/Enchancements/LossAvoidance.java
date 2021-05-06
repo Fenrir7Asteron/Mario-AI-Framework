@@ -14,22 +14,24 @@ public class LossAvoidance {
     public SimulationResult AvoidLoss(LinkedList<Integer> moveHistory, TreeNode sourceNode, int currentDepth) {
         var sourceSnapshot = sourceNode.getSceneSnapshot();
 
+        int loseAction = -1;
+        int numberOfMovesToReplace = 0;
+        int repetitions = 1;
+
         // Create another simulation node and advance it until one move before the loss.
         TreeNode lossAvoidingSimulationNode = NodeBuilder.allocateNode(
                 -1,
                 null,
                 sourceNode.getTree(),
-                sourceSnapshot.clone());
-
-        int loseAction = -1;
-        int numberOfMovesToReplace = 0;
+                sourceSnapshot.clone(), repetitions);
 
         while (numberOfMovesToReplace < moveHistory.size()
                 && numberOfMovesToReplace < NUMBER_OF_MOVES_REPLACE) {
             loseAction = moveHistory.removeLast();
             numberOfMovesToReplace++;
         }
-        lossAvoidingSimulationNode.makeMoves(moveHistory);
+
+        lossAvoidingSimulationNode.makeMoves(moveHistory, repetitions);
 
         double maxReward = MCTree.MIN_REWARD - 1;
         int bestActionId = -1;
@@ -64,9 +66,9 @@ public class LossAvoidance {
                     -1,
                     null,
                     sourceNode.getTree(),
-                    lossAvoidingSimulationNode.getSceneSnapshot().clone());
+                    lossAvoidingSimulationNode.getSceneSnapshot().clone(), repetitions);
 
-            nodeVariant.makeMove(Utils.availableActions[moveId], numberOfMovesToReplace);
+            nodeVariant.makeMove(Utils.availableActions[moveId], numberOfMovesToReplace * repetitions);
             double reward = Utils.calcReward(
                     sourceSnapshot,
                     nodeVariant.getSceneSnapshot(),
