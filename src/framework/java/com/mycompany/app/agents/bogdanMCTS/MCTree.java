@@ -10,22 +10,20 @@ import com.mycompany.app.utils.Constants;
 import java.util.*;
 
 public class MCTree implements Cloneable {
+    public static double PROGRESS_WEIGHT = 0.5;
+    public static double BASE_REWARD = 0.5;
+    public static double DAMAGE_WEIGHT = 0.5;
+    public static double AGE_DECAY = 0.02;
+    public static float MAX_REWARD = 1.0f;
+    public static float MIN_REWARD = 0.0f;
 
-    public static final double PROGRESS_WEIGHT = 0.5;
-    public static final double BASE_REWARD = 0.5;
-    public static final double DAMAGE_WEIGHT = 0.5;
-    public static final double AGE_DECAY = 0.02;
-    public static final double PATH_LENGTH_WEIGHT = 0.5;
-    public static final float MAX_REWARD = 1.0f;
-    public static final float MIN_REWARD = 0.0f;
-
-    public static final int MAX_TREE_DEPTH = 20;
-    public static final int MAX_SIMULATION_DEPTH = 12;
-    public static final double EXPLORATION_FACTOR = 0.188f;
-    public static final boolean DETERMINISTIC = false;
-    public static final int SEARCH_REPETITIONS = 100;
-    public static final int MACRO_REPETITIONS = 3;
-    public static final int DANGER_NODE_DISTANCE = 3;
+    public static int MAX_TREE_DEPTH = 20;
+    public static int MAX_SIMULATION_DEPTH = 12;
+    public static double EXPLORATION_FACTOR = 0.188f;
+    public static boolean DETERMINISTIC = false;
+    public static int SEARCH_REPETITIONS = 100;
+    public static int MACRO_REPETITIONS = 3;
+    public static int DANGER_NODE_DISTANCE = 3;
 
     int enhancements;
 

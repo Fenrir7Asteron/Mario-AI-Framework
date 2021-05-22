@@ -9,9 +9,9 @@ import java.util.Comparator;
 import java.util.stream.Collectors;
 
 public class HardPruning {
-    private final static int MIN_VISITS = 50;
-    private final static int MIN_REMAINING_CHILDREN = 3;
-    private final static double PRUNING_SPEED = 2.0f;
+    public static int MIN_VISITS = 50;
+    public static int MIN_REMAINING_CHILDREN = 3;
+    public static double PRUNING_SPEED = 2.0f;
 
     public void tryPruneChildren(TreeNode parent) {
         if (parent.getVisitCountComplete() > MIN_VISITS) {

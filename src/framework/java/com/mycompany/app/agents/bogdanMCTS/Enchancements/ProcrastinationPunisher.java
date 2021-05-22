@@ -6,9 +6,9 @@ import com.mycompany.app.engine.core.MarioForwardModel;
 import java.util.HashMap;
 
 public class ProcrastinationPunisher implements Cloneable {
-    private final float CELL_WIDTH = 10.0f;
-    private final float SCORE_DECREASE = 0.01f;
-    private HashMap<String, Integer> cellVisitCounter = new HashMap<>();
+    public float CELL_WIDTH = 10.0f;
+    public float SCORE_DECREASE = 0.01f;
+    public HashMap<String, Integer> cellVisitCounter = new HashMap<>();
 
     public synchronized double decreaseRewardBasedOnProcrastination(MarioForwardModel model, double reward) {
         Cell cell = getCell(model);

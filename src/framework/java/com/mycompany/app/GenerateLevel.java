@@ -23,6 +23,7 @@ public class GenerateLevel {
     private static final int REPETITION_COUNT = 15;
     private static final int TIME_FOR_LEVEL = 20;
     private static final int DISTANCE_MULTIPLIER = 16;
+    private static final boolean GENERATE_LEVELS = false;
 
     public static void printResults(MarioResult result) {
         System.out.println("****************************************************************");
@@ -65,6 +66,10 @@ public class GenerateLevel {
     }
 
     public static String generateSampleLevels() {
+        if (!GENERATE_LEVELS) {
+            return LEVEL_DIR;
+        }
+
         int generated = 0;
 //        var progressBar = new ProgressBar("Levels", LEVEL_COUNT);
 

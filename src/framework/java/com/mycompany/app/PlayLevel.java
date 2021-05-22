@@ -18,13 +18,12 @@ import com.mycompany.app.utils.ThreadPool;
 import me.tongfei.progressbar.ProgressBar;
 
 public class PlayLevel {
-    public static final int DISTANCE_MULTIPLIER = 16;
     public static final int TIME_FOR_LEVEL = 30;
     public static final int MARIO_START_MODE = 0;
-    public static final String LEVEL_DIR = "./levels/thesisTestLevels100/";
+    public static final String LEVEL_DIR = "./levels/thesisTestLevels/";
 //    public static final String LEVEL_DIR = "./levels/original/";
     public static final int NUMBER_OF_SAMPLES = 1;
-    public static final int LEVEL_REPETITION_COUNT = 3;
+    public static final int LEVEL_REPETITION_COUNT = 5;
     public static final Boolean VISUALIZATION = false;
     public static final Boolean LOAD_RESULTS_TO_GIT = true;
 
@@ -167,7 +166,7 @@ public class PlayLevel {
 //        HashSet<Integer> availableEnhancementMasks = MCTSEnhancements.AvailableEnhancementMasks();
         MCTSEnhancements.Enhancement[] enList = MCTSEnhancements.Enhancement.values();
         ArrayList<Integer> availableEnhancementMasks = new ArrayList<>() {{
-            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{}));
             add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[1], enList[2], enList[3], enList[4], enList[5], enList[6], enList[7], enList[8]}));
             add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[1], enList[2], enList[4]}));
             add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[1], enList[3], enList[7]}));
@@ -188,16 +187,16 @@ public class PlayLevel {
         System.out.println("Available MCTS enhancements combinations: "
                 + availableEnhancementMasks.size());
 
-//        for (int mctsEnhancementMask : availableEnhancementMasks) {
-//            PlayAllSamplesWithEnhancements(mctsAgent, mctsEnhancementMask);
-//            printStatistics(mctsAgent, time, mctsEnhancementMask);
-//            time = System.currentTimeMillis();
-//        }
+        for (int mctsEnhancementMask : availableEnhancementMasks) {
+            PlayAllSamplesWithEnhancements(mctsAgent, mctsEnhancementMask);
+            printStatistics(mctsAgent, time, mctsEnhancementMask);
+            time = System.currentTimeMillis();
+        }
 
-        int enhancements = PresetEnhancements(mctsAgent);
-        PlayAllSamples(mctsAgent, enhancements);
-        printStatistics(mctsAgent, time, enhancements);
-        mctsAgent.outputScores(NUMBER_OF_SAMPLES, LEVEL_REPETITION_COUNT, enhancements, LOAD_RESULTS_TO_GIT);
+//        int enhancements = PresetEnhancements(mctsAgent);
+//        PlayAllSamples(mctsAgent, enhancements);
+//        printStatistics(mctsAgent, time, enhancements);
+//        mctsAgent.outputScores(NUMBER_OF_SAMPLES, LEVEL_REPETITION_COUNT, enhancements, LOAD_RESULTS_TO_GIT);
 
         PlayAllSamples(aStarAgent, 0);
         printStatistics(aStarAgent, time, 0);

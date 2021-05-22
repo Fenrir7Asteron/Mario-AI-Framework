@@ -5,7 +5,7 @@ import com.mycompany.app.agents.bogdanMCTS.NodeInternals.TreeNode;
 import com.mycompany.app.utils.Constants;
 
 public class SP_MCTS {
-    private static final double D = 4;
+    public static double D = 4;
 
     public double variability(TreeNode node) {
         double averageRewardSquared = node.getAverageReward() * node.getAverageReward();

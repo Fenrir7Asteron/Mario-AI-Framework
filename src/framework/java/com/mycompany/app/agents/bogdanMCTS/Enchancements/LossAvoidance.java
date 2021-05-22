@@ -9,7 +9,7 @@ import com.mycompany.app.agents.bogdanMCTS.Utils;
 import java.util.LinkedList;
 
 public class LossAvoidance {
-    private static final int NUMBER_OF_MOVES_REPLACE = 3;
+    public static int NUMBER_OF_MOVES_REPLACE = 3;
 
     public SimulationResult AvoidLoss(LinkedList<Integer> moveHistory, TreeNode sourceNode, int currentDepth) {
         var sourceSnapshot = sourceNode.getSceneSnapshot();
