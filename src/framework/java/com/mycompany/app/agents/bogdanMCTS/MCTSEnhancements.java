@@ -2,6 +2,7 @@ package com.mycompany.app.agents.bogdanMCTS;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 public class MCTSEnhancements {
     public enum Enhancement {
@@ -19,8 +20,8 @@ public class MCTSEnhancements {
         PROCRASTINATION_PUNISHER,
     }
 
-    public static HashSet<Integer> AvailableEnhancementMasks() {
-        return findAvailableMasksRecursively(new HashSet<>(), 0, 0);
+    public static ArrayList<Integer> AvailableEnhancementMasks() {
+        return new ArrayList<>(findAvailableMasksRecursively(new HashSet<>(), 0, 0));
     }
 
     public static String enhancementsToString(int enhancementsMask) {
@@ -95,6 +96,14 @@ public class MCTSEnhancements {
             return false;
         }
 
-        return true;
+        // Remove enhancements that didn't pass sreening stage.
+
+        return !MaskContainsEnhancement(enhancementMask, Enhancement.HARD_PRUNING)
+                && !MaskContainsEnhancement(enhancementMask, Enhancement.TREE_REUSE)
+                && !MaskContainsEnhancement(enhancementMask, Enhancement.N_GRAM_SELECTION)
+                && !MaskContainsEnhancement(enhancementMask, Enhancement.AGING)
+                && !MaskContainsEnhancement(enhancementMask, Enhancement.PARTIAL_EXPANSION)
+                && !MaskContainsEnhancement(enhancementMask, Enhancement.SAFETY_PREPRUNING)
+                && !MaskContainsEnhancement(enhancementMask, Enhancement.PROCRASTINATION_PUNISHER);
     }
 }

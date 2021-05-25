@@ -7,6 +7,7 @@ from scipy.stats import ttest_ind, normaltest
 from statsmodels.stats.power import TTestIndPower
 from matplotlib import pyplot
 import numpy as np
+import os
 
 DATA_FOLDER = "../../data/"
 RESAMPLE_SIZE = 10000
@@ -23,7 +24,7 @@ def read_observations(file_path):
         return np.array(observations)
 
 
-def read_sample(file_path):
+def read_sample(file_path) -> np.array:
     with open(file_path, "r") as inp_file:
         observations = []
         for line in inp_file.readlines():
@@ -113,23 +114,28 @@ def permutation_test(sample1, sample2):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    sample1 = read_sample(DATA_FOLDER + "MyMCTSAgent1.txt")
-    sample2 = read_sample(DATA_FOLDER + "RobinBaumgartenAgent1.txt")
+    for filename in os.listdir(DATA_FOLDER):
+        sample = read_sample(DATA_FOLDER + "/" + filename)
+        print(f"{filename}: {sample.mean()}")
 
-    bootstrap_sample1 = bootstrap_means_distribution(sample1)
-    bootstrap_sample2 = bootstrap_means_distribution(sample2)
 
-    pyplot.hist(bootstrap_sample1, color="r")
-    pyplot.hist(bootstrap_sample2, color="b")
-    pyplot.show()
+    # sample1 = read_sample(DATA_FOLDER + "MyMCTSAgent1.txt")
+    # sample2 = read_sample(DATA_FOLDER + "RobinBaumgartenAgent1.txt")
 
-    print(normaltest(bootstrap_sample1))
-    print(normaltest(bootstrap_sample2))
-
-    print(abs(calc_cohen_d(bootstrap_sample1, bootstrap_sample2)))
-
-    print(test_for_identity(bootstrap_sample1, bootstrap_sample2))
-
-    print(permutation_test(sample1, sample2))
+    # bootstrap_sample1 = bootstrap_means_distribution(sample1)
+    # bootstrap_sample2 = bootstrap_means_distribution(sample2)
+    #
+    # pyplot.hist(bootstrap_sample1, color="r")
+    # pyplot.hist(bootstrap_sample2, color="b")
+    # pyplot.show()
+    #
+    # print(normaltest(bootstrap_sample1))
+    # print(normaltest(bootstrap_sample2))
+    #
+    # print(abs(calc_cohen_d(bootstrap_sample1, bootstrap_sample2)))
+    #
+    # print(test_for_identity(bootstrap_sample1, bootstrap_sample2))
+    #
+    # print(permutation_test(sample1, sample2))
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

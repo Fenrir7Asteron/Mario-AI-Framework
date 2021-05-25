@@ -165,25 +165,63 @@ public class PlayLevel {
 
 //        HashSet<Integer> availableEnhancementMasks = MCTSEnhancements.AvailableEnhancementMasks();
         MCTSEnhancements.Enhancement[] enList = MCTSEnhancements.Enhancement.values();
+//        ArrayList<Integer> availableEnhancementMasks = new ArrayList<>() {{
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[4], enList[6], enList[7]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[1], enList[4], enList[5], enList[7]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[1], enList[2], enList[3], enList[4], enList[5], enList[6], enList[7], enList[8]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[1], enList[2], enList[4]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[1], enList[3], enList[7]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[1], enList[5], enList[6], enList[8]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[2], enList[3], enList[6]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[2], enList[5], enList[7]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[3], enList[4], enList[5], enList[8]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[1], enList[2], enList[3], enList[5]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[1], enList[2], enList[6], enList[7], enList[8]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[1], enList[3], enList[4], enList[6], enList[8]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[2], enList[3], enList[4], enList[7], enList[8]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[2], enList[4], enList[5], enList[6]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[3], enList[5], enList[6], enList[7]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[8]}));
+//        }};
+
         ArrayList<Integer> availableEnhancementMasks = new ArrayList<>() {{
 //            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{}));
-            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[1], enList[2], enList[3], enList[4], enList[5], enList[6], enList[7], enList[8]}));
-            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[1], enList[2], enList[4]}));
-            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[1], enList[3], enList[7]}));
-            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[1], enList[5], enList[6], enList[8]}));
-            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[2], enList[3], enList[6]}));
-            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[2], enList[5], enList[7]}));
-            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[3], enList[4], enList[5], enList[8]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[5], enList[6], enList[7]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[5], enList[8]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[1], enList[6], enList[8]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[1], enList[7]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[2], enList[7], enList[8]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[2], enList[6]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[1], enList[2], enList[5]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[1], enList[2], enList[5], enList[6], enList[7], enList[8]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[3], enList[8]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[3], enList[6], enList[7]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[1], enList[3], enList[5], enList[7]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[1], enList[3], enList[5], enList[6], enList[8]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[2], enList[3], enList[5], enList[6]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[2], enList[3], enList[5], enList[7], enList[8]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[1], enList[2], enList[3], enList[6], enList[7], enList[8]}));
+            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[1], enList[2], enList[3]}));
+            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[4], enList[8]}));
             add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[4], enList[6], enList[7]}));
-            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[1], enList[2], enList[3], enList[5]}));
-            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[1], enList[2], enList[6], enList[7], enList[8]}));
-            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[1], enList[3], enList[4], enList[6], enList[8]}));
             add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[1], enList[4], enList[5], enList[7]}));
-            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[2], enList[3], enList[4], enList[7], enList[8]}));
+            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[1], enList[4], enList[5], enList[6], enList[8]}));
             add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[2], enList[4], enList[5], enList[6]}));
-            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[3], enList[5], enList[6], enList[7]}));
-            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[8]}));
+            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[2], enList[4], enList[5], enList[7], enList[8]}));
+            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[1], enList[2], enList[4], enList[6], enList[7], enList[8]}));
+            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[1], enList[2], enList[4]}));
+            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[3], enList[4], enList[5], enList[6], enList[7]}));
+            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[3], enList[4], enList[5], enList[8]}));
+            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[1], enList[3], enList[4], enList[6], enList[8]}));
+            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[1], enList[3], enList[4], enList[7]}));
+            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[2], enList[3], enList[4], enList[7], enList[8]}));
+            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[2], enList[3], enList[4], enList[6]}));
+            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[1], enList[2], enList[3], enList[4], enList[5]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[1], enList[2], enList[3], enList[4], enList[5], enList[6], enList[7], enList[8]}));
         }};
+
+//        ArrayList<Integer> availableEnhancementMasks = MCTSEnhancements.AvailableEnhancementMasks();
         System.out.println("Available MCTS enhancements combinations: "
                 + availableEnhancementMasks.size());
 
@@ -198,9 +236,9 @@ public class PlayLevel {
 //        printStatistics(mctsAgent, time, enhancements);
 //        mctsAgent.outputScores(NUMBER_OF_SAMPLES, LEVEL_REPETITION_COUNT, enhancements, LOAD_RESULTS_TO_GIT);
 
-        PlayAllSamples(aStarAgent, 0);
-        printStatistics(aStarAgent, time, 0);
-        aStarAgent.outputScores(NUMBER_OF_SAMPLES, LEVEL_REPETITION_COUNT, 0, LOAD_RESULTS_TO_GIT);
+//        PlayAllSamples(aStarAgent, 0);
+//        printStatistics(aStarAgent, time, 0);
+//        aStarAgent.outputScores(NUMBER_OF_SAMPLES, LEVEL_REPETITION_COUNT, 0, LOAD_RESULTS_TO_GIT);
 
 //        playSingleLevel(aStarAgent, "./levels/lvl-killer_plant.txt", LEVEL_REPETITION_COUNT, 0);
 //        playSingleLevel(aStarAgent, "./levels/original/lvl-1.txt", LEVEL_REPETITION_COUNT, 0);

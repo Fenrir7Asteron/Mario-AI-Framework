@@ -4,8 +4,8 @@ from matplotlib.ticker import PercentFormatter
 import numpy as np
 
 if __name__ == '__main__':
-    data = np.array([0.014256933, -0.118124478, -0.012218555, 0.055873608, -0.036724062, -0.045014475, -0.035428129, 0.002211202,
-                     -0.046942258, 0.020077363, -0.029503747, -0.014693934, 0.009920774, 0.044568440, -0.042651834])
+    data = np.array([0.013006, -0.110544, -0.019756, 0.042981, -0.020281, -0.050881, -0.036606, -0.008119,
+                     -0.033456, 0.009531, -0.020556, -0.014281, -0.010919, 0.044231, -0.047481])
 
     data_abs = np.abs(data)
 
@@ -32,7 +32,7 @@ if __name__ == '__main__':
 
     ax2.plot(df.index, df["cumpercentage"], color="C1", marker="D", ms=7)
     ax2.yaxis.set_major_formatter(PercentFormatter())
-    ax2.axhline(y=95, color="C2", linestyle='dashed')
+    ax2.axhline(y=80, color="C2", linestyle='dashed')
     ax2.set_ylabel('Cumulative Percentage')
     ax2.yaxis.set_label_position("right")
 
