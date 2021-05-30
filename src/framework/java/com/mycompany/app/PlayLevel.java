@@ -10,7 +10,10 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import com.mycompany.app.agents.bogdanMCTS.Enchancements.HardPruning;
+import com.mycompany.app.agents.bogdanMCTS.Enchancements.MixMax;
 import com.mycompany.app.agents.bogdanMCTS.MCTSEnhancements;
+import com.mycompany.app.agents.bogdanMCTS.MCTree;
 import com.mycompany.app.agents.bogdanMCTS.PaperAgent;
 import com.mycompany.app.engine.core.*;
 import com.mycompany.app.utils.Score;
@@ -185,7 +188,7 @@ public class PlayLevel {
 //            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[8]}));
 //        }};
 
-        ArrayList<Integer> availableEnhancementMasks = new ArrayList<>() {{
+//        ArrayList<Integer> availableEnhancementMasks = new ArrayList<>() {{
 //            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{}));
 //            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[5], enList[6], enList[7]}));
 //            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[5], enList[8]}));
@@ -202,33 +205,60 @@ public class PlayLevel {
 //            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[2], enList[3], enList[5], enList[6]}));
 //            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[2], enList[3], enList[5], enList[7], enList[8]}));
 //            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[1], enList[2], enList[3], enList[6], enList[7], enList[8]}));
-            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[1], enList[2], enList[3]}));
-            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[4], enList[8]}));
-            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[4], enList[6], enList[7]}));
-            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[1], enList[4], enList[5], enList[7]}));
-            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[1], enList[4], enList[5], enList[6], enList[8]}));
-            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[2], enList[4], enList[5], enList[6]}));
-            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[2], enList[4], enList[5], enList[7], enList[8]}));
-            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[1], enList[2], enList[4], enList[6], enList[7], enList[8]}));
-            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[1], enList[2], enList[4]}));
-            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[3], enList[4], enList[5], enList[6], enList[7]}));
-            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[3], enList[4], enList[5], enList[8]}));
-            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[1], enList[3], enList[4], enList[6], enList[8]}));
-            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[1], enList[3], enList[4], enList[7]}));
-            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[2], enList[3], enList[4], enList[7], enList[8]}));
-            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[2], enList[3], enList[4], enList[6]}));
-            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[1], enList[2], enList[3], enList[4], enList[5]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[1], enList[2], enList[3]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[4], enList[8]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[4], enList[6], enList[7]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[1], enList[4], enList[5], enList[7]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[1], enList[4], enList[5], enList[6], enList[8]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[2], enList[4], enList[5], enList[6]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[2], enList[4], enList[5], enList[7], enList[8]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[1], enList[2], enList[4], enList[6], enList[7], enList[8]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[1], enList[2], enList[4]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[3], enList[4], enList[5], enList[6], enList[7]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[3], enList[4], enList[5], enList[8]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[1], enList[3], enList[4], enList[6], enList[8]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[1], enList[3], enList[4], enList[7]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[2], enList[3], enList[4], enList[7], enList[8]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[2], enList[3], enList[4], enList[6]}));
+//            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[1], enList[2], enList[3], enList[4], enList[5]}));
 //            add(MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[1], enList[2], enList[3], enList[4], enList[5], enList[6], enList[7], enList[8]}));
-        }};
+//        }};
 
 //        ArrayList<Integer> availableEnhancementMasks = MCTSEnhancements.AvailableEnhancementMasks();
-        System.out.println("Available MCTS enhancements combinations: "
-                + availableEnhancementMasks.size());
+//        System.out.println("Available MCTS enhancements combinations: "
+//                + availableEnhancementMasks.size());
 
-        for (int mctsEnhancementMask : availableEnhancementMasks) {
-            PlayAllSamplesWithEnhancements(mctsAgent, mctsEnhancementMask);
-            printStatistics(mctsAgent, time, mctsEnhancementMask);
-            time = System.currentTimeMillis();
+        int mctsEnhancementMask = MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[1], enList[3]});
+
+        for (var maxSimulationDepth : new int[]{6, 8, 12})
+        {
+            MCTree.MAX_SIMULATION_DEPTH = maxSimulationDepth;
+
+            for (var explorationFactor : new float[]{0.125f, 0.188f, 0.25f})
+            {
+                MCTree.EXPLORATION_FACTOR = explorationFactor;
+
+                for (var mixmaxFactor : new float[]{0.125f, 0.25f})
+                {
+                    MixMax.MIXMAX_MAX_FACTOR = mixmaxFactor;
+
+                    for (var hardPruningSpeed : new float[]{1.5f, 2.0f})
+                    {
+                        HardPruning.PRUNING_SPEED = hardPruningSpeed;
+
+                        String hyperparameters = "_d" + maxSimulationDepth
+                                + "_e" + explorationFactor
+                                + "_m" + mixmaxFactor
+                                + "_s" + hardPruningSpeed;
+
+                        mctsAgent.setHyperparemeterNames(hyperparameters);
+
+                        PlayAllSamplesWithEnhancements(mctsAgent, mctsEnhancementMask);
+                        printStatistics(mctsAgent, time, mctsEnhancementMask);
+                        time = System.currentTimeMillis();
+                    }
+                }
+            }
         }
 
 //        int enhancements = PresetEnhancements(mctsAgent);

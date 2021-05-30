@@ -14,6 +14,8 @@ import static com.mycompany.app.utils.MyMath.average;
  * @author BogdanFedotov
  */
 public class Agent implements PaperAgent {
+    private String _hyperparameterString = "";
+
     public enum Hyperparameter {
         MAX_DEPTH,
         EXPLORATION_FACTOR,
@@ -53,7 +55,7 @@ public class Agent implements PaperAgent {
 
     @Override
     public String getAgentName() {
-        return "MCTSAgentResIV";
+        return "MCTSAgentBestEnhancements";
     }
 
     @Override
@@ -76,7 +78,8 @@ public class Agent implements PaperAgent {
     public void outputScores(int numberOfSamples, int levelRepetitions, int enhancements, Boolean loadResultsToGit) {
         String namePrefix = getAgentName()
                 + numberOfSamples
-                + MCTSEnhancements.enhancementsToString(enhancements);
+                + MCTSEnhancements.enhancementsToString(enhancements)
+                + _hyperparameterString;
 
         ArrayList<Double> averageLevelScores = Utils.averageLevelScores(levelRepetitions, resultScores);
 
@@ -87,6 +90,11 @@ public class Agent implements PaperAgent {
     public void clearScores() {
         resultScores.clear();
         resultTimes.clear();
+    }
+
+    @Override
+    public void setHyperparemeterNames(String hyperparameters) {
+        _hyperparameterString = hyperparameters;
     }
 
     public void setEnhancements(int enhancementMask) {

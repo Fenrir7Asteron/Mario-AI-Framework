@@ -17,7 +17,7 @@ public class MCTree implements Cloneable {
     public static float MAX_REWARD = 1.0f;
     public static float MIN_REWARD = 0.0f;
 
-    public static int MAX_TREE_DEPTH = 20;
+    public static int MAX_TREE_DEPTH = 30;
     public static int MAX_SIMULATION_DEPTH = 12;
     public static double EXPLORATION_FACTOR = 0.188f;
     public static boolean DETERMINISTIC = false;

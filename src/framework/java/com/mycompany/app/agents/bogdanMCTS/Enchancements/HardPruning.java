@@ -1,5 +1,6 @@
 package com.mycompany.app.agents.bogdanMCTS.Enchancements;
 
+import com.mycompany.app.agents.bogdanMCTS.MCTSEnhancements;
 import com.mycompany.app.agents.bogdanMCTS.NodeInternals.TreeNode;
 
 import java.util.ArrayList;
@@ -15,6 +16,14 @@ public class HardPruning {
 
     public void tryPruneChildren(TreeNode parent) {
         if (parent.getVisitCountComplete() > MIN_VISITS) {
+            if (!MCTSEnhancements.MaskContainsEnhancement(parent.getTree().getEnhancements(), MCTSEnhancements.Enhancement.PARTIAL_EXPANSION)) {
+                if (parent.childrenHardPruned) {
+                    return;
+                }
+
+                parent.childrenHardPruned = true;
+            }
+
             var sortedChildren = (ArrayList<TreeNode>) parent.getChildren().clone();
             sortedChildren.sort(Comparator.comparingDouble(TreeNode::getAverageReward));
 //            var sortedChildren = parent.getChildren().stream()

@@ -22,6 +22,7 @@ public class Agent implements PaperAgent {
     private AStarTree tree;
     private ArrayList<Double> resultScores = new ArrayList<>();
     private ArrayList<Double> resultTimes = new ArrayList<>();
+    private String _hyperparameterString = "";
 
     @Override
     public void initialize(MarioForwardModel model, MarioTimer timer) {
@@ -58,7 +59,7 @@ public class Agent implements PaperAgent {
 
     @Override
     public void outputScores(int numberOfSamples, int levelRepetitions, int enhancements, Boolean loadResultsToGit) {
-        var namePrefix = getAgentName() + numberOfSamples;
+        var namePrefix = getAgentName() + numberOfSamples + _hyperparameterString;
 
         ArrayList<Double> averageLevelScores = Utils.averageLevelScores(levelRepetitions, resultScores);
 
@@ -69,5 +70,10 @@ public class Agent implements PaperAgent {
     public void clearScores() {
         resultScores.clear();
         resultTimes.clear();
+    }
+
+    @Override
+    public void setHyperparemeterNames(String hyperparameters) {
+        _hyperparameterString = hyperparameters;
     }
 }

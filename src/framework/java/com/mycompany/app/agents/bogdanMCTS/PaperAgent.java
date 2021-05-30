@@ -9,4 +9,6 @@ public interface PaperAgent extends MarioAgent  {
     public double averageTime();
     public void outputScores(int numberOfSamples, int levelRepetitions, int enhancements, Boolean loadResultsToGit);
     public void clearScores();
+
+    void setHyperparemeterNames(String hyperparameters);
 }

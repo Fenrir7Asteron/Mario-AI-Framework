@@ -16,6 +16,7 @@ public class TreeNode implements Cloneable {
     TreeNode parent;
     ArrayList<TreeNode> children;
     MCTree tree;
+    public boolean childrenHardPruned;
 
     public TreeNode(int actionId, TreeNode parent, MarioForwardModel sceneSnapshot, MCTree tree, int repetitions) {
         this.data = new TreeNodeData(actionId, sceneSnapshot);

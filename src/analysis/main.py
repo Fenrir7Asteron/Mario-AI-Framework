@@ -9,7 +9,7 @@ from matplotlib import pyplot
 import numpy as np
 import os
 
-DATA_FOLDER = "../../data/"
+DATA_FOLDER = "../../data/EnhancementsResIV"
 RESAMPLE_SIZE = 10000
 
 
