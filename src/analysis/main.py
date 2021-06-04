@@ -3,13 +3,17 @@
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
-from scipy.stats import ttest_ind, normaltest
+from scipy.stats import ttest_rel, normaltest
 from statsmodels.stats.power import TTestIndPower
 from matplotlib import pyplot
 import numpy as np
 import os
 
-DATA_FOLDER = "../../data/EnhancementsResIV"
+# DATA_FOLDER = "../../data/EnhancementsResIV"
+HYPER_PARAMETER_FOLDER = "HyperParameterTuning2/"
+ENHANCEMENTS_SELECTION_FOLDER = "EnhancementsResIV/"
+BEST_CANDIDATES_FOLDER = "BestCandidates/"
+DATA_FOLDER_ROOT = "../../data/"
 RESAMPLE_SIZE = 10000
 
 
@@ -35,7 +39,7 @@ def read_sample(file_path) -> np.array:
 
 
 def test_for_identity(observations1, observations2):
-    result = ttest_ind(observations1, observations2)
+    result = ttest_rel(observations1, observations2)
     p_value = result[1]
 
     return significance_level(p_value)
@@ -114,9 +118,22 @@ def permutation_test(sample1, sample2):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    for filename in os.listdir(DATA_FOLDER):
-        sample = read_sample(DATA_FOLDER + "/" + filename)
-        print(f"{filename}: {sample.mean()}")
+    base_experiment = HYPER_PARAMETER_FOLDER + "MCTSAgentBestEnhancementsNumber21+HAR+WU_+MIX_d12_e0.188_m0.25_s2.0.txt"
+    base_sample = read_sample(DATA_FOLDER_ROOT + base_experiment)
+
+    for filename in os.listdir(DATA_FOLDER_ROOT + HYPER_PARAMETER_FOLDER):
+        sample = read_sample(DATA_FOLDER_ROOT + HYPER_PARAMETER_FOLDER + filename)
+        print(f"{filename}: {sample.mean()}", end=" | ")
+
+        bootstrap_sample_tested = bootstrap_means_distribution(sample)
+        bootstrap_sample_base = bootstrap_means_distribution(base_sample)
+        print(test_for_identity(bootstrap_sample_tested, bootstrap_sample_base))
+
+    print(f"{base_experiment}: {base_sample.mean()}", end=" | ")
+    print(test_for_identity(base_sample, base_sample))
+
+
+
 
 
     # sample1 = read_sample(DATA_FOLDER + "MyMCTSAgent1.txt")

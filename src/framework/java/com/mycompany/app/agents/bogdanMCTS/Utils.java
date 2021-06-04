@@ -9,6 +9,8 @@ import java.util.ArrayList;
 public class Utils {
     // Left, Right, Down, Speed, Jump
     public static boolean[][] availableActions = new boolean[][]{
+            new boolean[]{false, false, false, true, true},
+            new boolean[]{false, true, false, false, true},
             new boolean[]{false, true, false, false, false},
             new boolean[]{false, true, false, true, false},
             new boolean[]{false, true, false, false, true},

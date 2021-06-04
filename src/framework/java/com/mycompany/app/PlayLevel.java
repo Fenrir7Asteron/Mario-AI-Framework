@@ -230,19 +230,55 @@ public class PlayLevel {
 
         int mctsEnhancementMask = MCTSEnhancements.AddEnhancements(0, new MCTSEnhancements.Enhancement[]{enList[0], enList[1], enList[3]});
 
-        for (var maxSimulationDepth : new int[]{6, 8, 12})
+//        for (var maxSimulationDepth : new int[]{12, 16})
+//        {
+//            MCTree.MAX_SIMULATION_DEPTH = maxSimulationDepth;
+//
+//            for (var explorationFactor : new float[]{0.125f, 0.188f, 0.25f})
+//            {
+//                if (maxSimulationDepth == 12
+//                        && (Math.abs(explorationFactor - 0.125f) < 1e-6 || Math.abs(explorationFactor - 0.188f) < 1e-6)) {
+//                    continue;
+//                }
+//
+//                MCTree.EXPLORATION_FACTOR = explorationFactor;
+//
+//                for (var mixmaxFactor : new float[]{0.25f, 0.4f, 0.875f})
+//                {
+//                    MixMax.MIXMAX_MAX_FACTOR = mixmaxFactor;
+//
+//                    for (var hardPruningSpeed : new float[]{2.0f, 3.0f})
+//                    {
+//                        HardPruning.PRUNING_SPEED = hardPruningSpeed;
+//
+//                        String hyperparameters = "_d" + maxSimulationDepth
+//                                + "_e" + explorationFactor
+//                                + "_m" + mixmaxFactor
+//                                + "_s" + hardPruningSpeed;
+//
+//                        mctsAgent.setHyperparemeterNames(hyperparameters);
+//
+//                        PlayAllSamplesWithEnhancements(mctsAgent, mctsEnhancementMask);
+//                        printStatistics(mctsAgent, time, mctsEnhancementMask);
+//                        time = System.currentTimeMillis();
+//                    }
+//                }
+//            }
+//        }
+
+        for (var maxSimulationDepth : new int[]{16})
         {
             MCTree.MAX_SIMULATION_DEPTH = maxSimulationDepth;
 
-            for (var explorationFactor : new float[]{0.125f, 0.188f, 0.25f})
+            for (var explorationFactor : new float[]{0.188f, 0.25f})
             {
                 MCTree.EXPLORATION_FACTOR = explorationFactor;
 
-                for (var mixmaxFactor : new float[]{0.125f, 0.25f})
+                for (var mixmaxFactor : new float[]{0.875f})
                 {
                     MixMax.MIXMAX_MAX_FACTOR = mixmaxFactor;
 
-                    for (var hardPruningSpeed : new float[]{1.5f, 2.0f})
+                    for (var hardPruningSpeed : new float[]{3.0f})
                     {
                         HardPruning.PRUNING_SPEED = hardPruningSpeed;
 
@@ -261,14 +297,20 @@ public class PlayLevel {
             }
         }
 
-//        int enhancements = PresetEnhancements(mctsAgent);
-//        PlayAllSamples(mctsAgent, enhancements);
-//        printStatistics(mctsAgent, time, enhancements);
-//        mctsAgent.outputScores(NUMBER_OF_SAMPLES, LEVEL_REPETITION_COUNT, enhancements, LOAD_RESULTS_TO_GIT);
+        PlayAllSamples(mctsAgent, mctsEnhancementMask);
+        printStatistics(mctsAgent, time, mctsEnhancementMask);
+        mctsAgent.outputScores(NUMBER_OF_SAMPLES, LEVEL_REPETITION_COUNT, mctsEnhancementMask, LOAD_RESULTS_TO_GIT);
 
-//        PlayAllSamples(aStarAgent, 0);
-//        printStatistics(aStarAgent, time, 0);
-//        aStarAgent.outputScores(NUMBER_OF_SAMPLES, LEVEL_REPETITION_COUNT, 0, LOAD_RESULTS_TO_GIT);
+        mctsEnhancementMask = 0;
+        MCTree.MAX_SIMULATION_DEPTH = 12;
+        MCTree.EXPLORATION_FACTOR = 0.188f;
+        PlayAllSamples(mctsAgent, mctsEnhancementMask);
+        printStatistics(mctsAgent, time, mctsEnhancementMask);
+        mctsAgent.outputScores(NUMBER_OF_SAMPLES, LEVEL_REPETITION_COUNT, mctsEnhancementMask, LOAD_RESULTS_TO_GIT);
+
+        PlayAllSamples(aStarAgent, 0);
+        printStatistics(aStarAgent, time, 0);
+        aStarAgent.outputScores(NUMBER_OF_SAMPLES, LEVEL_REPETITION_COUNT, 0, LOAD_RESULTS_TO_GIT);
 
 //        playSingleLevel(aStarAgent, "./levels/lvl-killer_plant.txt", LEVEL_REPETITION_COUNT, 0);
 //        playSingleLevel(aStarAgent, "./levels/original/lvl-1.txt", LEVEL_REPETITION_COUNT, 0);
@@ -282,10 +324,10 @@ public class PlayLevel {
                 enhancedMCTSAgent) {
             int mctsEnhancementMask = MCTSEnhancements.
                     AddEnhancements(0, new MCTSEnhancements.Enhancement[] {
-                        MCTSEnhancements.Enhancement.HARD_PRUNING,
-                            MCTSEnhancements.Enhancement.WU_UCT,
+//                        MCTSEnhancements.Enhancement.HARD_PRUNING,
+//                            MCTSEnhancements.Enhancement.WU_UCT,
 //                            MCTSEnhancements.Enhancement.TREE_REUSE,
-                            MCTSEnhancements.Enhancement.MIXMAX,
+//                            MCTSEnhancements.Enhancement.MIXMAX,
 //                            MCTSEnhancements.Enhancement.N_GRAM_SELECTION,
 //                            MCTSEnhancements.Enhancement.LOSS_AVOIDANCE,
 //                            MCTSEnhancements.Enhancement.AGING,

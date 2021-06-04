@@ -55,7 +55,7 @@ public class Agent implements PaperAgent {
 
     @Override
     public String getAgentName() {
-        return "MCTSAgentBestEnhancements";
+        return "MCTSFinalTest";
     }
 
     @Override

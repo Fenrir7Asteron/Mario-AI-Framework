@@ -13,17 +13,17 @@ import java.util.Comparator;
 import java.util.stream.Stream;
 
 public class GenerateLevel {
-    public static final int LEVEL_COUNT = 30;
+    public static final int LEVEL_COUNT = 100;
     public static final boolean TEST_DETERMINISM = false;
     public static final int RANDOM_SEED = 12345;
 
     private static final int GENERATED_LEVEL_WIDTH = 150;
     private static final int GENERATED_LEVEL_HEIGHT = 16;
-    private static final String LEVEL_DIR = "./levels/thesisTestLevels100/";
+    private static final String LEVEL_DIR = "./levels/thesisFinalTestLevels/";
     private static final int REPETITION_COUNT = 15;
     private static final int TIME_FOR_LEVEL = 20;
     private static final int DISTANCE_MULTIPLIER = 16;
-    private static final boolean GENERATE_LEVELS = false;
+    private static final boolean GENERATE_LEVELS = true;
 
     public static void printResults(MarioResult result) {
         System.out.println("****************************************************************");
