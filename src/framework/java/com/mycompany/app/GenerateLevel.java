@@ -13,7 +13,7 @@ import java.util.Comparator;
 import java.util.stream.Stream;
 
 public class GenerateLevel {
-    public static final int LEVEL_COUNT = 100;
+    public static final int LEVEL_COUNT = 30;
     public static final boolean TEST_DETERMINISM = false;
     public static final int RANDOM_SEED = 12345;
 
@@ -23,7 +23,7 @@ public class GenerateLevel {
     private static final int REPETITION_COUNT = 15;
     private static final int TIME_FOR_LEVEL = 20;
     private static final int DISTANCE_MULTIPLIER = 16;
-    private static final boolean GENERATE_LEVELS = true;
+    private static final boolean GENERATE_LEVELS = false;
 
     public static void printResults(MarioResult result) {
         System.out.println("****************************************************************");

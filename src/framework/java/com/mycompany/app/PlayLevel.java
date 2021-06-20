@@ -21,13 +21,14 @@ import com.mycompany.app.utils.ThreadPool;
 import me.tongfei.progressbar.ProgressBar;
 
 public class PlayLevel {
-    public static final int TIME_FOR_LEVEL = 30;
+    public static final int TIME_FOR_LEVEL = 20;
     public static final int MARIO_START_MODE = 0;
     public static final String LEVEL_DIR = "./levels/thesisTestLevels/";
+//    public static final String LEVEL_DIR = "./levels/thesisFinalTestLevels/";
 //    public static final String LEVEL_DIR = "./levels/original/";
     public static final int NUMBER_OF_SAMPLES = 1;
     public static final int LEVEL_REPETITION_COUNT = 5;
-    public static final Boolean VISUALIZATION = false;
+    public static final Boolean VISUALIZATION = true;
     public static final Boolean LOAD_RESULTS_TO_GIT = true;
 
     private static final ArrayList<Future<Score>> futures = new ArrayList<>();
@@ -296,17 +297,13 @@ public class PlayLevel {
                 }
             }
         }
-
-        PlayAllSamples(mctsAgent, mctsEnhancementMask);
-        printStatistics(mctsAgent, time, mctsEnhancementMask);
-        mctsAgent.outputScores(NUMBER_OF_SAMPLES, LEVEL_REPETITION_COUNT, mctsEnhancementMask, LOAD_RESULTS_TO_GIT);
-
-        mctsEnhancementMask = 0;
-        MCTree.MAX_SIMULATION_DEPTH = 12;
-        MCTree.EXPLORATION_FACTOR = 0.188f;
-        PlayAllSamples(mctsAgent, mctsEnhancementMask);
-        printStatistics(mctsAgent, time, mctsEnhancementMask);
-        mctsAgent.outputScores(NUMBER_OF_SAMPLES, LEVEL_REPETITION_COUNT, mctsEnhancementMask, LOAD_RESULTS_TO_GIT);
+//
+//        mctsEnhancementMask = 0;
+//        MCTree.MAX_SIMULATION_DEPTH = 12;
+//        MCTree.EXPLORATION_FACTOR = 0.188f;
+//        PlayAllSamples(mctsAgent, mctsEnhancementMask);
+//        printStatistics(mctsAgent, time, mctsEnhancementMask);
+//        mctsAgent.outputScores(NUMBER_OF_SAMPLES, LEVEL_REPETITION_COUNT, mctsEnhancementMask, LOAD_RESULTS_TO_GIT);
 
         PlayAllSamples(aStarAgent, 0);
         printStatistics(aStarAgent, time, 0);

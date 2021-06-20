@@ -13,6 +13,7 @@ import os
 HYPER_PARAMETER_FOLDER = "HyperParameterTuning2/"
 ENHANCEMENTS_SELECTION_FOLDER = "EnhancementsResIV/"
 BEST_CANDIDATES_FOLDER = "BestCandidates/"
+TEST_FOLDER = "FinalTest/"
 DATA_FOLDER_ROOT = "../../data/"
 RESAMPLE_SIZE = 10000
 
@@ -121,16 +122,16 @@ if __name__ == '__main__':
     base_experiment = HYPER_PARAMETER_FOLDER + "MCTSAgentBestEnhancementsNumber21+HAR+WU_+MIX_d12_e0.188_m0.25_s2.0.txt"
     base_sample = read_sample(DATA_FOLDER_ROOT + base_experiment)
 
-    for filename in os.listdir(DATA_FOLDER_ROOT + HYPER_PARAMETER_FOLDER):
-        sample = read_sample(DATA_FOLDER_ROOT + HYPER_PARAMETER_FOLDER + filename)
-        print(f"{filename}: {sample.mean()}", end=" | ")
+    for filename in os.listdir(DATA_FOLDER_ROOT + TEST_FOLDER):
+        sample = read_sample(DATA_FOLDER_ROOT + TEST_FOLDER + filename)
+        print(f"{filename}: {sample.mean()}")
 
-        bootstrap_sample_tested = bootstrap_means_distribution(sample)
-        bootstrap_sample_base = bootstrap_means_distribution(base_sample)
-        print(test_for_identity(bootstrap_sample_tested, bootstrap_sample_base))
+        # bootstrap_sample_tested = bootstrap_means_distribution(sample)
+        # bootstrap_sample_base = bootstrap_means_distribution(base_sample)
+        # print(test_for_identity(bootstrap_sample_tested, bootstrap_sample_base))
 
-    print(f"{base_experiment}: {base_sample.mean()}", end=" | ")
-    print(test_for_identity(base_sample, base_sample))
+    # print(f"{base_experiment}: {base_sample.mean()}", end=" | ")
+    # print(test_for_identity(base_sample, base_sample))
 
 
 
